@@ -5,7 +5,7 @@ grammar Javamm;
 }
 
 EQUALS : '=';
-SEMICOLUMN : ';' ;
+SEMICOLON : ';' ;
 LCURLY : '{' ;
 RCURLY : '}' ;
 LPAREN : '(' ;
@@ -37,23 +37,31 @@ FALSE : 'false' ;
 THIS : 'this' ;
 NEW : 'new' ;
 
+STATIC : 'static' ;
+VOID : 'void' ;
+STRING : 'String';
 
 INTEGER : '0'|([1-9][0-9]*) ;
 ID : [a-zA-Z_$][a-zA-Z_$0-9]* ;
 
+LINE_COMMENT : '//' ~[\r\n]* -> skip;
+BLOCK_COMMENT : '/*' .*? '*/' -> skip;
 
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : classDecl EOF
+    : importDeclaration* classDecl EOF
     ;
 
+importDeclaration
+    : 'import' ID ( '.' ID )* ';'
+    ;
 
 classDecl
     : CLASS name=ID
-        ('extend' name=ID)?
+        ('extends' name=ID)?
         LCURLY
-        methodDecl*
+        (varDecl* methodDecl*)?
         RCURLY
     ;
 
@@ -64,13 +72,21 @@ methodDecl locals[boolean isPublic=false]
         LCURLY varDecl* stmt* RCURLY
     ;
 
+mainMethodDecl
+    : 'static' 'void' 'main' LPAREN 'String' LBRACKET RBRACKET ID RPAREN block
+    ;
+
+block
+    : LCURLY varDecl* stmt* RCURLY
+    ;
+
 param
-    : type name=ID
+    : type name=ID (COMMA type name=ID)*
     ;
 
 // done
 varDecl
-    : type name=ID SEMICOLUMN
+    : type name=ID SEMICOLON
     ;
 
 // done
@@ -79,18 +95,18 @@ type
     | name= ID
     | name= BOOLEAN
     | name= INT_VECTOR
-    | name= INT_VECTOR2
+    | name= STRING
     ;
 
 // done
 stmt
-    : ID EQUALS expr SEMICOLUMN #AssignStmt // a = 0;
-    | RETURN expr SEMICOLUMN #ReturnStmt // return 0;
+    : ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
+    | RETURN expr SEMICOLON #ReturnStmt // return 0;
     | LCURLY stmt* RCURLY #BlockStmt // { a = 0; }
     | IF LPAREN expr RPAREN stmt (ELSE stmt)? #IfStmt // if (a) a = 0; else a = 1;
     | WHILE LPAREN expr RPAREN stmt #WhileStmt // while (a) a = 0;
-    | ID LBRACKET expr RBRACKET EQUALS expr SEMICOLUMN #ArrayAssignStmt // a[0] = 0;
-    | expr SEMICOLUMN #ExprStmt     // a.length; or a.method();
+    | ID LBRACKET expr RBRACKET EQUALS expr SEMICOLON #ArrayAssignStmt // a[0] = 0;
+    | expr SEMICOLON #ExprStmt     // a.length; or a.method();
     ;
 
 // done
