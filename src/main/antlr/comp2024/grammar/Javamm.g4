@@ -95,6 +95,7 @@ type
     | name= ID
     | name= BOOLEAN
     | name= INT_VECTOR
+    | name= INT_VECTOR2
     | name= STRING
     ;
 
