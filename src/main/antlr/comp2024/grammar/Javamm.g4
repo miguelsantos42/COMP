@@ -58,11 +58,14 @@ importDeclaration
     ;
 
 classDecl
-    : CLASS name=ID
-        ('extends' name=ID)?
+    : CLASS name=ID ('extends' name=ID)?
         LCURLY
-        (varDecl* methodDecl*)?
+        (classBody)?
         RCURLY
+    ;
+
+classBody
+    : (varDecl | methodDecl)+
     ;
 
 methodDecl locals[boolean isPublic=false]
