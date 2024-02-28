@@ -39,6 +39,7 @@ NEW : 'new' ;
 
 STATIC : 'static' ;
 VOID : 'void' ;
+MAIN : 'main' ;
 STRING : 'String';
 
 INTEGER : '0'|([1-9][0-9]*) ;
@@ -55,6 +56,9 @@ program
 
 importDeclaration
     : 'import' ID ( '.' ID )* ';'
+    /*
+        import java.util.Map;
+    */
     ;
 
 classDecl
@@ -62,47 +66,68 @@ classDecl
         LCURLY
         (classBody)?
         RCURLY
+    /*
+        class A extends B {
+            // body
+        }
+    */
     ;
 
 classBody
     : (varDecl | methodDecl)+
+    /*
+        int a;
+        public int a(int b){
+            int a;
+            a = 0;
+        }
+    */
     ;
 
-methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})?
+methodDecl
+    : (PUBLIC)?
         type name=ID
         LPAREN param RPAREN
-        LCURLY varDecl* stmt* RCURLY
+        block
+    /*
+    public int a(int b){
+        int a;
+        a = 0;
+    }
+    */
     ;
 
 mainMethodDecl
-    : 'static' 'void' 'main' LPAREN 'String' LBRACKET RBRACKET ID RPAREN block
+    : (PUBLIC)? STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID RPAREN block
+    /*
+    public static void main(String[] args){
+        int a;
+        a = 0;
+    }
+    */
     ;
 
 block
-    : LCURLY varDecl* stmt* RCURLY
+    : LCURLY varDecl* stmt* RCURLY // { int a; a = 0; }
     ;
 
 param
-    : type name=ID (COMMA type name=ID)*
+    : type name=ID (COMMA type name=ID)* // int a, int b
     ;
 
-// done
 varDecl
-    : type name=ID SEMICOLON
+    : type name=ID SEMICOLON // int a;
     ;
 
-// done
 type
-    : name= INT
-    | name= ID
-    | name= BOOLEAN
-    | name= INT_VECTOR
-    | name= INT_VECTOR2
-    | name= STRING
+    : name= INT // int
+    | name= ID // example: class instance
+    | name= BOOLEAN // boolean
+    | name= INT_VECTOR // int[]
+    | name= INT_VECTOR2 // int...
+    | name= STRING // String
     ;
 
-// done
 stmt
     : ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
     | RETURN expr SEMICOLON #ReturnStmt // return 0;
@@ -113,7 +138,6 @@ stmt
     | expr SEMICOLON #ExprStmt     // a.length; or a.method();
     ;
 
-// done
 expr
     : LPAREN expr RPAREN #ParenthesisExpr // (a)
     | expr LBRACKET expr RBRACKET #ArrayAccessExpr // a[b]
