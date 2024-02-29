@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.symboltable;
 
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
+import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.Kind;
@@ -8,34 +9,34 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
 
 public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
+    private String className = "";
+    private String extendedClassName = "";
+    private ArrayList<String> imports = new ArrayList<>();
+    private ArrayList<String> methods = new ArrayList<>();
+    private HashMap<String, Type> methodReturnTypes = new HashMap<>();
+    private HashMap<String, List<Symbol>> methodParams = new HashMap<>();
+    private HashMap<String, List<Symbol>> methodLocalVariables = new HashMap<>();
 
-    public static JmmSymbolTable build(JmmNode root) {
+    private JmmSymbolTable table;
 
-        var classDecl = root.getJmmChild(0) ;
-        System.out.println(root.getChildren());
-        SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
-        String className = classDecl.get("name");
-
-        var methods = buildMethods(classDecl);
-        var returnTypes = buildReturnTypes(classDecl);
-        var params = buildParams(classDecl);
-        var locals = buildLocals(classDecl);
-
-        return new JmmSymbolTable(className, methods, returnTypes, params, locals);
+    public JmmSymbolTableBuilder(JmmNode rootNode){
+        visit(rootNode, "");
+        this.table = new JmmSymbolTable(className, extendedClassName, imports, methods, methodReturnTypes, methodParams, methodLocalVariables);
     }
 
+    public JmmSymbolTable getTable(){
+        return this.table;
+    }
 
     public void buildVisitor() {
+        addVisit("Program", this::visitProgram);
         addVisit("ImportDeclaration", this::visitImportDeclaration);
         addVisit("ClassDeclaration", this::visitClassDeclaration);
         addVisit("ClassBodyDeclaration", this::visitClassBodyDeclaration);
@@ -72,135 +73,147 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
         addVisit("BooleanLiteral", this::visitBooleanLiteral);
     }
 
-    private String visitImportDeclaration(JmmNode node, String arg) {
+    private  String visitProgram(JmmNode jmmNode, String s) {
+        System.out.println("Visiting Program");
+        System.out.println(jmmNode.getChildren());
+        for(var child : jmmNode.getChildren()){
+            visit(child, s);
+        }
+        return s;
+    }
+
+    private String visitImportDeclaration(JmmNode node, String s) {
+        System.out.print("visiting Import");
+        this.imports.add(node.get("name"));
+        System.out.print(this.imports);
+        return s;
+    }
+
+    private String visitClassDeclaration(JmmNode node, String s) {
         return null;
     }
 
-    private String visitClassDeclaration(JmmNode node, String arg) {
+    private String visitClassBodyDeclaration(JmmNode node, String s) {
         return null;
     }
 
-    private String visitClassBodyDeclaration(JmmNode node, String arg) {
+    private String visitMethodDeclaration(JmmNode node, String s) {
         return null;
     }
 
-    private String visitMethodDeclaration(JmmNode node, String arg) {
+    private String visitMainMethodDeclaration(JmmNode node, String s) {
         return null;
     }
 
-    private String visitMainMethodDeclaration(JmmNode node, String arg) {
+    private String visitMethodCodeBlock(JmmNode node, String s) {
         return null;
     }
 
-    private String visitMethodCodeBlock(JmmNode node, String arg) {
+    private String visitFunctionParameters(JmmNode node, String s) {
         return null;
     }
 
-    private String visitFunctionParameters(JmmNode node, String arg) {
+    private String visitVarDeclaration(JmmNode node, String s) {
         return null;
     }
 
-    private String visitVarDeclaration(JmmNode node, String arg) {
+    private String visitIntType(JmmNode node, String s) {
         return null;
     }
 
-    private String visitIntType(JmmNode node, String arg) {
+    private String visitIDType(JmmNode node, String s) {
         return null;
     }
 
-    private String visitIDType(JmmNode node, String arg) {
+    private String visitBoolType(JmmNode node, String s) {
         return null;
     }
 
-    private String visitBoolType(JmmNode node, String arg) {
+    private String visitIntVectorType1(JmmNode node, String s) {
         return null;
     }
 
-    private String visitIntVectorType1(JmmNode node, String arg) {
+    private String visitIntVectorType2(JmmNode node, String s) {
         return null;
     }
 
-    private String visitIntVectorType2(JmmNode node, String arg) {
+    private String visitStingType(JmmNode node, String s) {
         return null;
     }
 
-    private String visitStingType(JmmNode node, String arg) {
+    private String visitAssignStmt(JmmNode node, String s) {
         return null;
     }
 
-    private String visitAssignStmt(JmmNode node, String arg) {
+    private String visitReturnStmt(JmmNode node, String s) {
         return null;
     }
 
-    private String visitReturnStmt(JmmNode node, String arg) {
+    private String visitBlockStmt(JmmNode node, String s) {
         return null;
     }
 
-    private String visitBlockStmt(JmmNode node, String arg) {
+    private String visitIfStmt(JmmNode node, String s) {
         return null;
     }
 
-    private String visitIfStmt(JmmNode node, String arg) {
+    private String visitWhileStmt(JmmNode node, String s) {
         return null;
     }
 
-    private String visitWhileStmt(JmmNode node, String arg) {
+    private String visitArrayAssignStmt(JmmNode node, String s) {
         return null;
     }
 
-    private String visitArrayAssignStmt(JmmNode node, String arg) {
+    private String visitExprStmt(JmmNode node, String s) {
         return null;
     }
 
-    private String visitExprStmt(JmmNode node, String arg) {
+    private String visitParanthesisExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitParanthesisExpr(JmmNode node, String arg) {
+    private String visitArrayAccessExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitArrayAccessExpr(JmmNode node, String arg) {
+    private String visitArrayLengthExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitArrayLengthExpr(JmmNode node, String arg) {
+    private String visitMethodCallExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitMethodCallExpr(JmmNode node, String arg) {
+    private String visitNegationExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitNegationExpr(JmmNode node, String arg) {
+    private String visitNewObjectExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitNewObjectExpr(JmmNode node, String arg) {
+    private String visitBinaryExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitBinaryExpr(JmmNode node, String arg) {
+    private String visitVarRefExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitVarRefExpr(JmmNode node, String arg) {
+    private String visitThisExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitThisExpr(JmmNode node, String arg) {
+    private String visitLogicalExpr(JmmNode node, String s) {
         return null;
     }
 
-    private String visitLogicalExpr(JmmNode node, String arg) {
+    private String visitIntegerLiteral(JmmNode node, String s) {
         return null;
     }
 
-    private String visitIntegerLiteral(JmmNode node, String arg) {
-        return null;
-    }
-
-    private String visitBooleanLiteral(JmmNode node, String arg) {
+    private String visitBooleanLiteral(JmmNode node, String s) {
         return null;
     }
 
@@ -262,4 +275,7 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
                 .toList();
     }
 
+    public JmmSymbolTable getSymbolTable() {
+        return table;
+    }
 }

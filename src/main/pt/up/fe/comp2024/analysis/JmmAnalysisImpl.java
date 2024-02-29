@@ -2,15 +2,19 @@ package pt.up.fe.comp2024.analysis;
 
 import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.passes.UndeclaredVariable;
+import pt.up.fe.comp2024.symboltable.JmmSymbolTable;
 import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class JmmAnalysisImpl implements JmmAnalysis {
@@ -28,9 +32,11 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
 
         JmmNode rootNode = parserResult.getRootNode();
+        JmmSymbolTableBuilder builder = new JmmSymbolTableBuilder(rootNode);
+        JmmSymbolTable table = builder.getTable();
 
-        SymbolTable table = JmmSymbolTableBuilder.build(rootNode);
-        System.out.print(table);
+        System.out.print("\n" + table.getImports());
+
 
         List<Report> reports = new ArrayList<>();
 

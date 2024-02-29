@@ -6,27 +6,25 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JmmSymbolTable implements SymbolTable {
 
-    private final String className;
-    private final String extendedClassName;
-    private final List<String> imports;
-    private final List<String> methods;
-    private final Map<String, Type> methodReturnTypes;
-    private final Map<String, List<Symbol>> methodParams;
-    private final Map<String, List<Symbol>> methodLocalVariables;
+    private String className;
+    private String extendedClassName;
+    private ArrayList<String> imports;
+    private ArrayList<String> methods;
+    private HashMap<String, Type> methodReturnTypes;
+    private HashMap<String, List<Symbol>> methodParams;
+    private HashMap<String, List<Symbol>> methodLocalVariables;
 
     public JmmSymbolTable(String className,
                           String extendedClassName,
-                          List<String> imports,
-                          List<String> methods,
-                          Map<String, Type> methodReturnTypes,
-                          Map<String, List<Symbol>> methodParams,
-                          Map<String, List<Symbol>> methodLocalVariables) {
+                          ArrayList<String> imports,
+                          ArrayList<String> methods,
+                          HashMap<String, Type> methodReturnTypes,
+                          HashMap<String, List<Symbol>> methodParams,
+                          HashMap<String, List<Symbol>> methodLocalVariables) {
         this.className = className;
         this.extendedClassName = extendedClassName;
         this.imports = imports;
@@ -37,7 +35,7 @@ public class JmmSymbolTable implements SymbolTable {
     }
 
     @Override
-    public List<String> getImports() {
+    public ArrayList<String> getImports() {
         return this.imports;
     }
 
@@ -57,8 +55,8 @@ public class JmmSymbolTable implements SymbolTable {
     }
 
     @Override
-    public List<String> getMethods() {
-        return Collections.unmodifiableList(methods);
+    public ArrayList<String> getMethods() {
+        return null; //Collections.unmodifiableList(methods);
     }
 
     @Override
