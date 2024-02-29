@@ -75,7 +75,7 @@ classDecl
     ;
 
 classBody
-    : (varDecl | methodDecl)+ #ClassBodyDeclaration
+    : (varDecl | methodDecl)+ mainMethodDecl? #ClassBodyDeclaration
     /*
         int a;
         public int a(int b){
