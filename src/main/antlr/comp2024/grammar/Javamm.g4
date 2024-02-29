@@ -51,11 +51,11 @@ BLOCK_COMMENT : '/*' .*? '*/' -> skip;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : importDeclaration* classDecl EOF
+    : importDecl* classDecl EOF
     ;
 
-importDeclaration
-    : 'import' name += ID ( '.' name +=ID )* ';'
+importDecl
+    : 'import' name += ID ( '.' name +=ID )* ';' #ImportDeclaration
     /*
         import java.util.Map;
     */
@@ -66,7 +66,7 @@ classDecl
     : CLASS name=ID ('extends' name=ID)?
         LCURLY
         (classBody)?
-        RCURLY
+        RCURLY #ClassDeclaration
     /*
         class A extends B {
             // body
@@ -75,7 +75,7 @@ classDecl
     ;
 
 classBody
-    : (varDecl | methodDecl)+
+    : (varDecl | methodDecl)+ #ClassBodyDeclaration
     /*
         int a;
         public int a(int b){
@@ -89,7 +89,7 @@ methodDecl
     : (PUBLIC)?
         type name=ID
         LPAREN param RPAREN
-        block
+        block #MethodDeclaration
     /*
     public int a(int b){
         int a;
@@ -99,7 +99,7 @@ methodDecl
     ;
 
 mainMethodDecl
-    : (PUBLIC)? STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID RPAREN block
+    : (PUBLIC)? STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID RPAREN block #MainMethodDeclaration
     /*
     public static void main(String[] args){
         int a;
@@ -109,24 +109,24 @@ mainMethodDecl
     ;
 
 block
-    : LCURLY varDecl* stmt* RCURLY // { int a; a = 0; }
+    : LCURLY varDecl* stmt* RCURLY #MethodCodeBlock // { int a; a = 0; }
     ;
 
 param
-    : type name=ID (COMMA type name=ID)* // int a, int b
+    : type name=ID (COMMA type name=ID)* #FunctionParameters // int a, int b
     ;
 
 varDecl
-    : type name=ID SEMICOLON // int a;
+    : type name=ID SEMICOLON #VarDeclaration // int a;
     ;
 
 type
-    : name= INT // int
-    | name= ID // example: class instance
-    | name= BOOLEAN // boolean
-    | name= INT_VECTOR // int[]
-    | name= INT_VECTOR2 // int...
-    | name= STRING // String
+    : name= INT #IntType // int
+    | name= ID #IDType // example: class instance
+    | name= BOOLEAN #BoolType // boolean
+    | name= INT_VECTOR #IntVectorType1 // int[]
+    | name= INT_VECTOR2 #IntVectorType2 // int...
+    | name= STRING #StringType // String
     ;
 
 stmt
