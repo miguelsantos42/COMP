@@ -55,7 +55,7 @@ program
     ;
 
 importDecl
-    : 'import' name += ID ( '.' name +=ID )* ';' #ImportDeclaration
+    : 'import' name += ID ( '.' name += ID )* ';' #ImportDeclaration
     /*
         import java.util.Map;
     */

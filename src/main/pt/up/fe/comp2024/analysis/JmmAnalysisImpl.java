@@ -30,6 +30,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
         JmmNode rootNode = parserResult.getRootNode();
 
         SymbolTable table = JmmSymbolTableBuilder.build(rootNode);
+        System.out.print(table);
 
         List<Report> reports = new ArrayList<>();
 
