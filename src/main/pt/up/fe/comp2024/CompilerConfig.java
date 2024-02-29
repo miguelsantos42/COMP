@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public class CompilerConfig {
 
-    private static final String INPUT_FILE = "inputFile";
+    private static final String INPUT_FILE = "input";
     private static final String OPTIMIZE = "optimize";
     private static final String REGISTER = "registerAllocation";
 

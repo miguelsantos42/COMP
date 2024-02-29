@@ -55,11 +55,12 @@ program
     ;
 
 importDeclaration
-    : 'import' ID ( '.' ID )* ';'
+    : 'import' name += ID ( '.' name +=ID )* ';'
     /*
         import java.util.Map;
     */
     ;
+
 
 classDecl
     : CLASS name=ID ('extends' name=ID)?
