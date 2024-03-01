@@ -63,7 +63,7 @@ importDecl
 
 
 classDecl
-    : CLASS name=ID ('extends' name=ID)?
+    : CLASS name=ID ('extends' extendedName=ID)?
         LCURLY
         (classBody)?
         RCURLY #ClassDeclaration

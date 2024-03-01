@@ -10,27 +10,27 @@ import java.util.*;
 
 public class JmmSymbolTable implements SymbolTable {
 
-    private String className;
-    private String extendedClassName;
-    private ArrayList<String> imports;
-    private ArrayList<String> methods;
-    private HashMap<String, Type> methodReturnTypes;
-    private HashMap<String, List<Symbol>> methodParams;
-    private HashMap<String, List<Symbol>> methodLocalVariables;
+    private final String className;
+    private final String extendedClassName;
+    private final ArrayList<String> imports;
+    private final ArrayList<String> methods;
+    private final HashMap<String, Type> methodReturnTypes;
+    private final HashMap<String, List<Symbol>> methodParameters;
+    private final HashMap<String, List<Symbol>> methodLocalVariables;
 
     public JmmSymbolTable(String className,
                           String extendedClassName,
                           ArrayList<String> imports,
                           ArrayList<String> methods,
                           HashMap<String, Type> methodReturnTypes,
-                          HashMap<String, List<Symbol>> methodParams,
+                          HashMap<String, List<Symbol>> methodParameters,
                           HashMap<String, List<Symbol>> methodLocalVariables) {
         this.className = className;
         this.extendedClassName = extendedClassName;
         this.imports = imports;
         this.methods = methods;
         this.methodReturnTypes = methodReturnTypes;
-        this.methodParams = methodParams;
+        this.methodParameters = methodParameters;
         this.methodLocalVariables = methodLocalVariables;
     }
 
@@ -56,7 +56,7 @@ public class JmmSymbolTable implements SymbolTable {
 
     @Override
     public ArrayList<String> getMethods() {
-        return null; //Collections.unmodifiableList(methods);
+        return this.methods;
     }
 
     @Override
@@ -67,12 +67,12 @@ public class JmmSymbolTable implements SymbolTable {
 
     @Override
     public List<Symbol> getParameters(String methodSignature) {
-        return Collections.unmodifiableList(methodParams.get(methodSignature));
+        return this.methodParameters.get(methodSignature);
     }
 
     @Override
     public List<Symbol> getLocalVariables(String methodSignature) {
-        return Collections.unmodifiableList(methodLocalVariables.get(methodSignature));
+        return this.methodLocalVariables.get(methodSignature);
     }
 
 }
