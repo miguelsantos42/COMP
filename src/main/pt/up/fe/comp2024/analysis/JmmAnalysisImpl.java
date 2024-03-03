@@ -30,6 +30,27 @@ public class JmmAnalysisImpl implements JmmAnalysis {
         JmmSymbolTableBuilder builder = new JmmSymbolTableBuilder(rootNode);
         JmmSymbolTable table = builder.getTable();
 
+        System.out.println("\n\nPrinting Symbol Table:");
+
+        System.out.println("\nImports:");
+        System.out.println(table.getImports());
+
+        System.out.println("\nClass Name:");
+        System.out.println(table.getClassName());
+
+        System.out.println("\nSuper:");
+        System.out.println(table.getSuper());
+
+        System.out.println("\nMethods:");
+        System.out.println(table.getMethods());
+
+        for (var method : table.getMethods()) {
+            System.out.println("\nMethod: " + method);
+            System.out.println("Return Type: " + table.getReturnType(method));
+            System.out.println("Parameters: " + table.getParameters(method));
+            System.out.println("Local Variables: " + table.getLocalVariables(method));
+        }
+
         List<Report> reports = new ArrayList<>();
 
         // Visit all nodes in the AST

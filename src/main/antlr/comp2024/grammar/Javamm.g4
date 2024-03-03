@@ -113,7 +113,7 @@ block
     ;
 
 param
-    : type name=ID (COMMA type name=ID)* #FunctionParameters // int a, int b
+    : type name += ID (COMMA type name += ID)* #FunctionParameters // int a, int b
     ;
 
 varDecl

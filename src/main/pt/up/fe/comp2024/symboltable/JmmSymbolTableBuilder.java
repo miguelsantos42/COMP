@@ -6,10 +6,7 @@ import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
@@ -92,7 +89,7 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitClassDeclaration(JmmNode node, String s) {
-        System.out.println("Visiting Class\n");
+        System.out.println("\nVisiting Class\n");
         this.className = node.get("name");
         this.extendedClassName = node.get("extendedName");
         System.out.println("Class Name: " + this.className);
@@ -106,7 +103,7 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitClassBodyDeclaration(JmmNode node, String s) {
-        System.out.println("Visiting Class Body\n");
+        System.out.println("\nVisiting Class Body\n");
 
         for (JmmNode child : node.getChildren()) {
             visit(child, s);
@@ -117,10 +114,39 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
     private String visitMethodDeclaration(JmmNode node, String s) {
         System.out.println("Visiting Method Declaration\n");
+        String methodName = node.get("name");
+        this.methods.add(methodName);
+        System.out.println("Method Name: " + methodName);
+        System.out.println("Parameters:");
+        System.out.println(node.getChildren());
 
         for (JmmNode child : node.getChildren()) {
-            visit(child, s);
+            if(Objects.equals(child.getKind(), "FunctionParameters")){
+                List<Symbol> params = new ArrayList<>();
+
+                String parameters = child.get("name");
+
+                String[] paramList = parameters.replace(']', ' ')
+                                                .replace('[',' ')
+                                                .strip()
+                                                .split(", ");
+                int i = 0;
+                for (JmmNode param : child.getChildren()) {
+                    String paramName = paramList[i++];
+                    String paramType = param.getKind();
+                    params.add(new Symbol(new Type(paramType, false), paramName));
+                }
+
+                this.methodParams.put(methodName, params);
+            }
+            else if(Objects.equals(child.getKind(), "MethodCodeBlock")){
+                visit(child, s);
+            }
+            else {
+                this.methodReturnTypes.put(methodName, new Type(child.getKind(), false));
+            }
         }
+
 
         return s;
     }
@@ -139,6 +165,7 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
         return null;
     }
 
+    // not needed imo
     private String visitFunctionParameters(JmmNode node, String s) {
         return null;
     }
