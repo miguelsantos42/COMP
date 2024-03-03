@@ -88,7 +88,7 @@ classBody
 methodDecl
     : (PUBLIC)?
         type name=ID
-        LPAREN param RPAREN
+        LPAREN (param)? RPAREN
         block #MethodDeclaration
     /*
     public int a(int b){
