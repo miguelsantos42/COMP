@@ -91,7 +91,7 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     private String visitClassDeclaration(JmmNode node, String s) {
         System.out.println("\nVisiting Class\n");
         this.className = node.get("name");
-        this.extendedClassName = node.get("extendedName");
+        this.extendedClassName = node.hasAttribute("extendedName") ? node.get("extendedName") : "not extended";
         System.out.println("Class Name: " + this.className);
         System.out.println("Extended Class Name: " + this.extendedClassName);
 
