@@ -133,7 +133,7 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
                 int i = 0;
                 for (JmmNode param : child.getChildren()) {
                     String paramName = paramList[i++];
-                    String paramType = param.getKind();
+                    String paramType = param.get("name");
                     params.add(new Symbol(new Type(paramType, false), paramName));
                 }
 
