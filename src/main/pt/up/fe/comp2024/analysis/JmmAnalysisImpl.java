@@ -2,12 +2,12 @@ package pt.up.fe.comp2024.analysis;
 
 import pt.up.fe.comp.jmm.analysis.JmmAnalysis;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
-import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.passes.UndeclaredVariable;
+import pt.up.fe.comp2024.symboltable.JmmSymbolTable;
 import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 
 import java.util.ArrayList;
@@ -26,10 +26,29 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
     @Override
     public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
-
         JmmNode rootNode = parserResult.getRootNode();
+        JmmSymbolTableBuilder builder = new JmmSymbolTableBuilder(rootNode);
+        JmmSymbolTable table = builder.getTable();
 
-        SymbolTable table = JmmSymbolTableBuilder.build(rootNode);
+        System.out.println("\n\nPrinting Symbol Table:");
+
+        System.out.println("\nImports:");
+        System.out.println(table.getImports());
+
+        System.out.println("\nClass Name: " + table.getClassName());
+
+        System.out.println("\nSuper: " + table.getSuper());
+
+        System.out.println("\nFields: " + table.getFields());
+
+        System.out.println("\nMethods: " + table.getMethods());
+
+        for (var method : table.getMethods()) {
+            System.out.println("\nMethod: " + method);
+            System.out.println("Return Type: " + table.getReturnType(method));
+            System.out.println("Parameters: " + table.getParameters(method));
+            System.out.println("Local Variables: " + table.getLocalVariables(method));
+        }
 
         List<Report> reports = new ArrayList<>();
 

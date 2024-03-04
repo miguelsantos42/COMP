@@ -55,7 +55,7 @@ program
     ;
 
 importDecl
-    : 'import' name += ID ( '.' name +=ID )* ';' #ImportDeclaration
+    : 'import' name += ID ( '.' name += ID )* ';' #ImportDeclaration
     /*
         import java.util.Map;
     */
@@ -63,7 +63,7 @@ importDecl
 
 
 classDecl
-    : CLASS name=ID ('extends' name=ID)?
+    : CLASS name=ID ('extends' extendedName=ID)?
         LCURLY
         (classBody)?
         RCURLY #ClassDeclaration
@@ -88,7 +88,7 @@ classBody
 methodDecl
     : (PUBLIC)?
         type name=ID
-        LPAREN param RPAREN
+        LPAREN (param)? RPAREN
         block #MethodDeclaration
     /*
     public int a(int b){
@@ -113,7 +113,7 @@ block
     ;
 
 param
-    : type name=ID (COMMA type name=ID)* #FunctionParameters // int a, int b
+    : type name += ID (COMMA type name += ID)* #FunctionParameters // int a, int b
     ;
 
 varDecl

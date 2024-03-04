@@ -87,6 +87,7 @@ public class SymbolTableTest {
         for (var m : methods) {
             var ret = st.getReturnType(m);
             var numParameters = st.getParameters(m).size();
+            System.out.println("Switching on: \n" + ret.getName() + "\n" + numParameters);
             switch (ret.getName()) {
                 case "MethodsAndFields":
                     checkObj++;
@@ -125,6 +126,7 @@ public class SymbolTableTest {
         assertEquals(1, methods.size());
 
         var parameters = st.getParameters(methods.get(0));
+        System.out.println("check: " + parameters.get(0).getType());
         assertEquals(3, parameters.size());
         assertEquals("Parameter 1", "int", parameters.get(0).getType().getName());
         assertEquals("Parameter 2", "boolean", parameters.get(1).getType().getName());
