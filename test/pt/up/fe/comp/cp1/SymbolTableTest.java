@@ -87,6 +87,7 @@ public class SymbolTableTest {
         for (var m : methods) {
             var ret = st.getReturnType(m);
             var numParameters = st.getParameters(m).size();
+            System.out.println("Switching on: \n" + ret.getName() + "\n" + numParameters);
             switch (ret.getName()) {
                 case "MethodsAndFields":
                     checkObj++;

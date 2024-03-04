@@ -35,14 +35,13 @@ public class JmmAnalysisImpl implements JmmAnalysis {
         System.out.println("\nImports:");
         System.out.println(table.getImports());
 
-        System.out.println("\nClass Name:");
-        System.out.println(table.getClassName());
+        System.out.println("\nClass Name: " + table.getClassName());
 
-        System.out.println("\nSuper:");
-        System.out.println(table.getSuper());
+        System.out.println("\nSuper: " + table.getSuper());
 
-        System.out.println("\nMethods:");
-        System.out.println(table.getMethods());
+        System.out.println("\nFields: " + table.getFields());
+
+        System.out.println("\nMethods: " + table.getMethods());
 
         for (var method : table.getMethods()) {
             System.out.println("\nMethod: " + method);

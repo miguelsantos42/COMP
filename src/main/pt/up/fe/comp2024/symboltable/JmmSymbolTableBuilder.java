@@ -17,6 +17,8 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     private String extendedClassName = "";
     private final ArrayList<String> imports = new ArrayList<>();
     private final ArrayList<String> methods = new ArrayList<>();
+
+    private final ArrayList<Symbol> fields = new ArrayList<>();
     private final HashMap<String, Type> methodReturnTypes = new HashMap<>();
     private final HashMap<String, List<Symbol>> methodParams = new HashMap<>();
     private final HashMap<String, List<Symbol>> methodLocalVariables = new HashMap<>();
@@ -25,7 +27,8 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
     public JmmSymbolTableBuilder(JmmNode rootNode){
         visit(rootNode, "");
-        this.table = new JmmSymbolTable(className, extendedClassName, imports, methods, methodReturnTypes, methodParams, methodLocalVariables);
+        System.out.println("\n\nFinished Visit\n\n");
+        this.table = new JmmSymbolTable(className, extendedClassName, imports, fields, methods, methodReturnTypes, methodParams, methodLocalVariables);
     }
 
     public JmmSymbolTable getTable(){
@@ -71,13 +74,13 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitProgram(JmmNode jmmNode, String s) {
-        System.out.println("Visiting Program\n");
+        System.out.println("\nVisiting Program\n");
         for(var child : jmmNode.getChildren()) visit(child, s);
         return s;
     }
 
     private String visitImportDeclaration(JmmNode node, String s) {
-        System.out.println("Visiting Import\n");
+        System.out.println("\nVisiting Import\n");
         String importName = node.get("name");
         String importNormalized = importName.replace(']', ' ')
                                             .replace('[',' ')
@@ -89,12 +92,11 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitClassDeclaration(JmmNode node, String s) {
-        System.out.println("\nVisiting Class\n");
+        System.out.println("\n\nVisiting Class\n");
         this.className = node.get("name");
         this.extendedClassName = node.hasAttribute("extendedName") ? node.get("extendedName") : "not extended";
         System.out.println("Class Name: " + this.className);
         System.out.println("Extended Class Name: " + this.extendedClassName);
-
         for (JmmNode child : node.getChildren()) {
             visit(child, s);
         }
@@ -103,8 +105,8 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitClassBodyDeclaration(JmmNode node, String s) {
-        System.out.println("\nVisiting Class Body\n");
-
+        System.out.println("\n\nVisiting Class Body\n");
+        System.out.println("Visiting classdecl children: \n" + node.getChildren());
         for (JmmNode child : node.getChildren()) {
             visit(child, s);
         }
@@ -113,12 +115,13 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitMethodDeclaration(JmmNode node, String s) {
-        System.out.println("Visiting Method Declaration\n");
+        System.out.println("\nVisiting Method Declaration\n");
         String methodName = node.get("name");
         this.methods.add(methodName);
         System.out.println("Method Name: " + methodName);
-        System.out.println("Parameters:");
+        System.out.println("Method Children:");
         System.out.println(node.getChildren());
+        this.methodParams.put(methodName, new ArrayList<>());
 
         for (JmmNode child : node.getChildren()) {
             if(Objects.equals(child.getKind(), "FunctionParameters")){
@@ -143,7 +146,9 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
                 visit(child, s);
             }
             else {
-                this.methodReturnTypes.put(methodName, new Type(child.getKind(), false));
+                Boolean isArray = (child.getKind().equals("IntVectorType1") || child.getKind().equals("IntVectorType2")) ? true : false ;
+                String returnType = isArray ? "int" : child.get("name");
+                this.methodReturnTypes.put(methodName, new Type(returnType, isArray));
             }
         }
 
@@ -152,8 +157,10 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitMainMethodDeclaration(JmmNode node, String s) {
-        System.out.println("Visiting Main Method Declaration\n");
-
+        System.out.println("\n\nVisiting Main Method Declaration\n");
+        this.methods.add("main");
+        this.methodParams.put("main", new ArrayList<>());
+        this.methodReturnTypes.put("main", new Type("void", false));
         for (JmmNode child : node.getChildren()) {
             visit(child, s);
         }
@@ -162,7 +169,32 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitMethodCodeBlock(JmmNode node, String s) {
-        return null;
+        System.out.println("\nVisiting Method Code Block\n");
+
+        if(node.getParent().hasAttribute("name")) {
+            ArrayList<Symbol> localVariables = new ArrayList<>();
+            this.methodLocalVariables.put(node.getParent().get("name"), localVariables);
+            for (JmmNode child : node.getChildren()) {
+                if (Objects.equals(child.getKind(), "VarDeclaration")) {
+                    Symbol var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
+                    localVariables.add(var);
+                    this.methodLocalVariables.put(node.getParent().get("name"), localVariables);
+                }
+            }
+        }
+        else{
+            ArrayList<Symbol> localVariables = new ArrayList<>();
+            this.methodLocalVariables.put("main", localVariables);
+            for (JmmNode child : node.getChildren()) {
+                if (Objects.equals(child.getKind(), "VarDeclaration")) {
+                    Symbol var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
+                    localVariables.add(var);
+                    this.methodLocalVariables.put("main", localVariables);
+                }
+            }
+        }
+
+        return s;
     }
 
     // not needed imo
@@ -171,7 +203,13 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     }
 
     private String visitVarDeclaration(JmmNode node, String s) {
-        return null;
+        System.out.println("\nVisiting Var Declaration\n");
+        String varName = node.get("name");
+        String varType = node.getChild(0).get("name");
+        System.out.println("Var Name: " + varName);
+        System.out.println("Var Type: " + varType);
+        this.fields.add(new Symbol(new Type(varType, false), varName));
+        return s;
     }
 
     private String visitIntType(JmmNode node, String s) {
