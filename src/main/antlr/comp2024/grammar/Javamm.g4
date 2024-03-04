@@ -27,7 +27,7 @@ INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 BOOLEAN : 'boolean' ;
-INT_VECTOR : 'int' (' ')? LBRACKET RBRACKET ;
+INT_VECTOR : 'int' (' ')? LBRACKET (' ')? RBRACKET ;
 INT_VECTOR2: 'int' (' ')? DOT DOT DOT;
 IF : 'if' ;
 ELSE : 'else' ;
