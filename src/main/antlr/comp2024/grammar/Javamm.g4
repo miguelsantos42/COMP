@@ -37,10 +37,9 @@ FALSE : 'false' ;
 THIS : 'this' ;
 NEW : 'new' ;
 
-STATIC : 'static' ;
-VOID : 'void' ;
-MAIN : 'main' ;
 STRING : 'String';
+
+MAIN_LINE : 'static void main';
 
 INTEGER : '0'|([1-9][0-9]*) ;
 ID : [a-zA-Z_$][a-zA-Z_$0-9]* ;
@@ -99,7 +98,7 @@ methodDecl
     ;
 
 mainMethodDecl
-    : (PUBLIC)? STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID RPAREN block #MainMethodDeclaration
+    : (PUBLIC)? MAIN_LINE LPAREN STRING LBRACKET RBRACKET ID RPAREN block #MainMethodDeclaration
     /*
     public static void main(String[] args){
         int a;
@@ -133,7 +132,7 @@ stmt
     : ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
     | RETURN expr SEMICOLON #ReturnStmt // return 0;
     | LCURLY stmt* RCURLY #BlockStmt // { a = 0; }
-    | IF LPAREN expr RPAREN stmt (ELSE stmt)? #IfStmt // if (a) a = 0; else a = 1;
+    | IF LPAREN expr RPAREN stmt ELSE stmt   #IfStmt // if (a) a = 0; else a = 1;
     | WHILE LPAREN expr RPAREN stmt #WhileStmt // while (a) a = 0;
     | ID LBRACKET expr RBRACKET EQUALS expr SEMICOLON #ArrayAssignStmt // a[0] = 0;
     | expr SEMICOLON #ExprStmt     // a.length; or a.method();
