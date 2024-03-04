@@ -63,7 +63,7 @@ importDecl
 classDecl
     : CLASS name=ID ('extends' extendedName=ID)?
         LCURLY
-        (classBody)?
+        (classBody)
         RCURLY #ClassDeclaration
     /*
         class A extends B {
@@ -73,7 +73,7 @@ classDecl
     ;
 
 classBody
-    : (varDecl | methodDecl)+ mainMethodDecl? #ClassBodyDeclaration
+    : varDecl* (methodDecl | mainMethodDecl)* #ClassBodyDeclaration
     /*
         int a;
         public int a(int b){
@@ -97,7 +97,7 @@ methodDecl
     ;
 
 mainMethodDecl
-    : (PUBLIC)? MAIN_LINE LPAREN STRING LBRACKET RBRACKET ID RPAREN block #MainMethodDeclaration
+    : (PUBLIC)? MAIN_LINE LPAREN STRING LBRACKET RBRACKET ID RPAREN mainBlock #MainMethodDeclaration
     /*
     public static void main(String[] args){
         int a;
@@ -107,7 +107,15 @@ mainMethodDecl
     ;
 
 block
-    : LCURLY varDecl* stmt* RCURLY #MethodCodeBlock // { int a; a = 0; }
+    : LCURLY varDecl* stmt* returnStatement RCURLY #MethodCodeBlock // { int a; a = 0; }
+    ;
+
+mainBlock
+    :LCURLY varDecl* stmt* RCURLY #MethodMainCodeBlock // { int a; a = 0; }
+    ;
+
+returnStatement
+    : RETURN expr SEMICOLON #ReturnStmt // return 0;
     ;
 
 param
@@ -129,7 +137,6 @@ type
 
 stmt
     : ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
-    | RETURN expr SEMICOLON #ReturnStmt // return 0;
     | LCURLY stmt* RCURLY #BlockStmt // { a = 0; }
     | IF LPAREN expr RPAREN stmt ELSE stmt   #IfStmt // if (a) a = 0; else a = 1;
     | WHILE LPAREN expr RPAREN stmt #WhileStmt // while (a) a = 0;
