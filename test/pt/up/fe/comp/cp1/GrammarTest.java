@@ -27,6 +27,8 @@ public class GrammarTest {
     private static final String STATEMENT = "stmt";
     private static final String EXPRESSION = "expr";
 
+    private static final String VAR_DECL = "varDecl";
+
     @Test
     public void testImportSingle() {
         TestUtils.parseVerbose("import bar;", IMPORT);
@@ -49,7 +51,7 @@ public class GrammarTest {
 
    @Test
     public void testVarDeclString() {
-        TestUtils.parseVerbose("String aString;", "varDecl");
+        TestUtils.parseVerbose("String aString;", VAR_DECL);
     }
 
     @Test
