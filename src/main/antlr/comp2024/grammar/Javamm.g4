@@ -27,8 +27,8 @@ INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 BOOLEAN : 'boolean' ;
-INT_VECTOR : 'int' LBRACKET RBRACKET ;
-INT_VECTOR2: 'int' DOT DOT DOT;
+INT_VECTOR : 'int' (' ')? LBRACKET RBRACKET ;
+INT_VECTOR2: 'int' (' ')? DOT DOT DOT;
 IF : 'if' ;
 ELSE : 'else' ;
 WHILE : 'while' ;
@@ -36,7 +36,6 @@ TRUE : 'true' ;
 FALSE : 'false' ;
 THIS : 'this' ;
 NEW : 'new' ;
-
 STRING : 'String';
 
 MAIN_LINE : 'static void main';
