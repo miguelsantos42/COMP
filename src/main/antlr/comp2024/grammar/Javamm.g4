@@ -22,6 +22,7 @@ SUB : '-' ;
 AND : '&&' ;
 LT : '<' ;
 
+IMPORT : 'import' ;
 CLASS : 'class' ;
 INT : 'int' ;
 PUBLIC : 'public' ;
@@ -53,7 +54,7 @@ program
     ;
 
 importDecl
-    : 'import' name += ID ( '.' name += ID )* ';' #ImportDeclaration
+    : IMPORT name += ID ( '.' name += ID )* ';' #ImportDeclaration
     /*
         import java.util.Map;
     */
@@ -107,7 +108,11 @@ mainMethodDecl
     ;
 
 block
-    : LCURLY varDecl* stmt* RCURLY #MethodCodeBlock // { int a; a = 0; }
+    : LCURLY varDecl* stmt* (returnStatement)? RCURLY #MethodCodeBlock // { int a; a = 0; }
+    ;
+
+returnStatement
+    : RETURN expr SEMICOLON #ReturnStmt // return 0;
     ;
 
 param
@@ -129,7 +134,6 @@ type
 
 stmt
     : ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
-    | RETURN expr SEMICOLON #ReturnStmt // return 0;
     | LCURLY stmt* RCURLY #BlockStmt // { a = 0; }
     | IF LPAREN expr RPAREN stmt ELSE stmt   #IfStmt // if (a) a = 0; else a = 1;
     | WHILE LPAREN expr RPAREN stmt #WhileStmt // while (a) a = 0;
@@ -141,7 +145,7 @@ expr
     : LPAREN expr RPAREN #ParenthesisExpr // (a)
     | expr LBRACKET expr RBRACKET #ArrayAccessExpr // a[b]
     | expr DOT 'length' #ArrayLengthExpr // a.length
-    | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr // a.method(b, c)
+    | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr // a.method(b, c) //MainAndFoo might be this
     | EXCLAMATION expr #NegationExpr // !a
     | NEW INT LBRACKET expr RBRACKET #NewArrayExpr // new int[a]
     | NEW ID LPAREN RPAREN #NewObjectExpr // new A()
