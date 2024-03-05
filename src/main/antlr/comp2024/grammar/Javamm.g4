@@ -28,6 +28,7 @@ INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 BOOLEAN : 'boolean' ;
+LENGTH : 'length' ;
 INT_VECTOR : 'int' (' ')? LBRACKET (' ')? RBRACKET ;
 INT_VECTOR2: 'int' (' ')? DOT DOT DOT;
 IF : 'if' ;
@@ -40,9 +41,7 @@ NEW : 'new' ;
 STRING : 'String';
 VOID : 'void';
 STATIC : 'static';
-MAIN : 'main ';
-
-MAIN_LINE : 'static void main';
+MAIN : 'main';
 
 INTEGER : '0'|([1-9][0-9]*) ;
 ID : [a-zA-Z_$][a-zA-Z_$0-9]* ;
@@ -99,7 +98,7 @@ methodDecl
     ;
 
 mainMethodDecl
-    : (PUBLIC)? MAIN_LINE LPAREN STRING LBRACKET RBRACKET ID RPAREN blockWithoutReturn #MainMethodDeclaration
+    : (PUBLIC)? STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET ID RPAREN blockWithoutReturn #MainMethodDeclaration
     /*
     public static void main(String[] args){
         int a;
@@ -149,7 +148,7 @@ stmt
 expr
     : LPAREN expr RPAREN #ParenthesisExpr // (a)
     | expr LBRACKET expr RBRACKET #ArrayAccessExpr // a[b]
-    | expr DOT 'length' #ArrayLengthExpr // a.length
+    | expr DOT LENGTH #ArrayLengthExpr // a.length
     | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr // a.method(b, c) //MainAndFoo might be this
     | EXCLAMATION expr #NegationExpr // !a
     | NEW INT LBRACKET expr RBRACKET #NewArrayExpr // new int[a]
@@ -163,9 +162,9 @@ expr
     | LBRACKET ( expr (COMMA expr)* )? RBRACKET #ArrayAccessExpr // [a, b, c]
     | value=INTEGER #IntegerLiteral // 0
     | name=ID #VarRefExpr // a
-    | name=THIS #ThisExpr // this
     | name=TRUE #BooleanLiteral // true
     | name=FALSE #BooleanLiteral // false
+    | name=THIS #ThisExpr // this
     ;
 
 
