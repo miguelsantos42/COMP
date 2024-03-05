@@ -38,6 +38,7 @@ FALSE : 'false' ;
 THIS : 'this' ;
 NEW : 'new' ;
 STRING : 'String';
+VOID : 'void';
 
 MAIN_LINE : 'static void main';
 
@@ -85,10 +86,8 @@ classBody
     ;
 
 methodDecl
-    : (PUBLIC)?
-        type name=ID
-        LPAREN (param)? RPAREN
-        block #MethodDeclaration
+    : (PUBLIC)? type name=ID LPAREN (param)? RPAREN block #MethodDeclaration
+    | (PUBLIC)? VOID name=ID LPAREN (param)? RPAREN blockWithoutReturn #MethodDeclaration
     /*
     public int a(int b){
         int a;
@@ -98,7 +97,7 @@ methodDecl
     ;
 
 mainMethodDecl
-    : (PUBLIC)? MAIN_LINE LPAREN STRING LBRACKET RBRACKET ID RPAREN block #MainMethodDeclaration
+    : (PUBLIC)? MAIN_LINE LPAREN STRING LBRACKET RBRACKET ID RPAREN blockWithoutReturn #MainMethodDeclaration
     /*
     public static void main(String[] args){
         int a;
@@ -108,7 +107,11 @@ mainMethodDecl
     ;
 
 block
-    : LCURLY varDecl* stmt* (returnStatement)? RCURLY #MethodCodeBlock // { int a; a = 0; }
+    : LCURLY varDecl* stmt* returnStatement RCURLY #MethodCodeBlock // { int a; a = 0; }
+    ;
+
+blockWithoutReturn
+    : LCURLY varDecl* stmt* RCURLY #MethodCodeBlockWithoutReturn // { int a; a = 0; }
     ;
 
 returnStatement

@@ -43,6 +43,7 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
         addVisit("MethodDeclaration", this::visitMethodDeclaration);
         addVisit("MainMethodDeclaration", this::visitMainMethodDeclaration);
         addVisit("MethodCodeBlock", this::visitMethodCodeBlock);
+        addVisit("MethodCodeBlockWithoutReturn", this::visitMethodCodeBlock);
         addVisit("FunctionParameters", this::visitFunctionParameters);
         addVisit("VarDeclaration", this::visitVarDeclaration);
         addVisit("IntType", this::visitIntType);
@@ -142,11 +143,11 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
                 this.methodParams.put(methodName, params);
             }
-            else if(Objects.equals(child.getKind(), "MethodCodeBlock")){
+            else if(Objects.equals(child.getKind(), "MethodCodeBlock") || Objects.equals(child.getKind(), "MethodCodeBlockWithoutReturn")){
                 visit(child, s);
             }
             else {
-                Boolean isArray = (child.getKind().equals("IntVectorType1") || child.getKind().equals("IntVectorType2")) ? true : false ;
+                boolean isArray = child.getKind().equals("IntVectorType1") || child.getKind().equals("IntVectorType2");
                 String returnType = isArray ? "int" : child.get("name");
                 this.methodReturnTypes.put(methodName, new Type(returnType, isArray));
             }
