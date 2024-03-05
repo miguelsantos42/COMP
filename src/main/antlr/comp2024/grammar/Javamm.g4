@@ -39,6 +39,8 @@ THIS : 'this' ;
 NEW : 'new' ;
 STRING : 'String';
 VOID : 'void';
+STATIC : 'static';
+MAIN : 'main ';
 
 MAIN_LINE : 'static void main';
 
