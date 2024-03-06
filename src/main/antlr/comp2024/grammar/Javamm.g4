@@ -69,7 +69,7 @@ importDecl
 classDecl
     : CLASS name=ID ('extends' extendedName=ID)?
         LCURLY
-        (classBody)?
+        (classBody)
         RCURLY #ClassDeclaration
     /*
         class A extends B {
@@ -79,7 +79,7 @@ classDecl
     ;
 
 classBody
-    : (varDecl | methodDecl)+ mainMethodDecl? #ClassBodyDeclaration
+    : varDecl* (methodDecl* mainMethodDecl? methodDecl*) #ClassBodyDeclaration
     /*
         int a;
         public int a(int b){
