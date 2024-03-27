@@ -2,7 +2,7 @@ class Hello {
     int ola;
 
     void roberto(){
-        ola = ola + false + 2;
+        ola = true && 4 < 2;
     }
 
 }
