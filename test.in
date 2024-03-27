@@ -1,0 +1,8 @@
+class Hello {
+    int ola;
+
+    void roberto(){
+        ola = ola + false + 2;
+    }
+
+}

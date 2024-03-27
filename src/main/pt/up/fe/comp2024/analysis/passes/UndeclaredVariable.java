@@ -22,10 +22,62 @@ public class UndeclaredVariable extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
+        addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
+        addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit(Kind.INTEGER_LITERAL, this::visitIntegerLit);
     }
+
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
+        return null;
+    }
+
+    private Void visitAssignStmt(JmmNode assign, SymbolTable table){
+        SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
+
+        // Check if exists a parameter or variable declaration with the same name as the variable reference
+        var varRefName = assign.get("name");
+
+        // Var is a field, return
+        if (table.getFields().stream()
+                .anyMatch(param -> param.getName().equals(varRefName))) {
+            return null;
+        }
+
+        // Var is a parameter, return
+        if (table.getParameters(currentMethod).stream()
+                .anyMatch(param -> param.getName().equals(varRefName))) {
+            return null;
+        }
+
+        // Var is a declared variable, return
+        if (table.getLocalVariables(currentMethod).stream()
+                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+            return null;
+        }
+
+        // Create error report
+        var message = String.format("Variable '%s' does not exist.", varRefName);
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(assign),
+                NodeUtils.getColumn(assign),
+                message,
+                null)
+        );
+
+        return null;
+    }
+
+    private Void visitBinaryExpr(JmmNode expr, SymbolTable table){
+        expr.getChild(0);
+        System.out.println("Olá1111!!!!!");
+        return null;
+    }
+
+    private Void visitIntegerLit(JmmNode expr, SymbolTable table){
+        System.out.println("Olá!!!!!!!!!!!!");
         return null;
     }
 

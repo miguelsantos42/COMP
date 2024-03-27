@@ -140,11 +140,11 @@ type
     ;
 
 stmt
-    : ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
+    : name = ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
     | LCURLY stmt* RCURLY #BlockStmt // { a = 0; }
     | IF LPAREN expr RPAREN stmt ELSE stmt   #IfStmt // if (a) a = 0; else a = 1;
     | WHILE LPAREN expr RPAREN stmt #WhileStmt // while (a) a = 0;
-    | ID LBRACKET expr RBRACKET EQUALS expr SEMICOLON #ArrayAssignStmt // a[0] = 0;
+    | name = ID LBRACKET expr RBRACKET EQUALS expr SEMICOLON #ArrayAssignStmt // a[0] = 0;
     | expr SEMICOLON #ExprStmt     // a.length; or a.method();
     ;
 
