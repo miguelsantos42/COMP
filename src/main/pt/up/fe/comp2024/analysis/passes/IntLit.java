@@ -22,6 +22,9 @@ public class IntLit extends AnalysisPosVisitor {
         addVisit("ParenthesisExpr", this::visitParenthesisExpr);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit("MethodCallExpr", this::visitMethodCallExpr);
+        addVisit("IfStmt", this::visitIfStmt);
+        addVisit("WhileStmt", this::visitWhileStmt);
+        addVisit(Kind.RETURN_STMT, this::visitReturnStmt);
     }
 
     private Void visitIntLit(JmmNode node, SymbolTable table){
@@ -120,6 +123,32 @@ public class IntLit extends AnalysisPosVisitor {
         return null;
     }
 
+    private Void visitIfStmt(JmmNode node, SymbolTable table){
+        if(!node.getChild(0).get("type").equals("boolean")){
+            String message = "This If statement is not boolean type";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        return null;
+    }
+
+    private Void visitWhileStmt(JmmNode node, SymbolTable table){
+        if(!node.getChild(0).get("type").equals("boolean")){
+            String message = "The While statement is not boolean type";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        return null;
+    }
+
     private Void visitMethodCallExpr(JmmNode node, SymbolTable table){
         System.out.println(node.getChildren().size());
         if(node.getNumChildren() != table.getParameters(node.get("name")).size()+1){
@@ -132,7 +161,33 @@ public class IntLit extends AnalysisPosVisitor {
                     null));
             return null;
         }
+        else{
+            for(int i = 1; i < node.getNumChildren(); i++){
+                if(!node.getChild(i).get("type").equals(table.getParameters(node.get("name")).get(i).getType().getName())){
+                    String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(node.get("name")).get(i).getType().getName() + ". Found " + node.getChild(i).get("type");
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(node),
+                            NodeUtils.getColumn(node),
+                            message,
+                            null));
+                    break;
+                }
+            }
+        }
         return null;
     }
 
+    private Void visitReturnStmt(JmmNode node, SymbolTable table){
+        if(!node.getChild(0).get("type").equals(table.getReturnType(node.get("name")))){
+            String message = "It doesnt match the method " + node.get("name") + " Expected: " + table.getReturnType(node.get("name")) + " found: " + node.getChild(0).get("type");
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        return null;
+    }
 }
