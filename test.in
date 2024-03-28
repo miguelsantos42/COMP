@@ -1,8 +1,21 @@
 class Hello {
     int ola;
 
-    void roberto(){
-        ola = true && 4 < 2;
-    }
+    int roberto(int i, int j){
+        //ola = !(13 < 14 + 18 && 90 / 4 < 10);
+        ola = ola;
+        this.roberto(2,4);
+        //ola = this.roberto();
+        if(true){
 
+        }
+        else{
+
+        }
+
+        while(true){
+
+        }
+        return 1;
+    }
 }

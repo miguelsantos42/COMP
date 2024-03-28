@@ -18,6 +18,10 @@ public class IntLit extends AnalysisPosVisitor {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         addVisit("LogicalExpr", this::visitLogicalExpr);
         addVisit("BooleanLiteral", this::visitBoolLit);
+        addVisit("NegationExpr", this::visitNegationExpr);
+        addVisit("ParenthesisExpr", this::visitParenthesisExpr);
+        addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
+        addVisit("MethodCallExpr", this::visitMethodCallExpr);
     }
 
     private Void visitIntLit(JmmNode node, SymbolTable table){
@@ -27,8 +31,53 @@ public class IntLit extends AnalysisPosVisitor {
 
     private Void visitBinaryExpr(JmmNode node, SymbolTable table){
         node.put("type", "int");
+
+        String operator = node.get("op");
+        if(operator.equals("+")){
+            if((!node.getChild(0).get("type").equals("int") || !node.getChild( 1).get("type").equals("int"))&&(!node.getChild(0).get("type").equals("string") || !node.getChild(1).get("type").equals("string"))){
+                String message = "Binary operation '+' is invalid between types that are not integer or string.";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(node),
+                        NodeUtils.getColumn(node),
+                        message,
+                        null));
+            }
+        }
+        else if(operator.equals("-") || operator.equals("*") || operator.equals("/")){
+            if(!node.getChild(0).get("type").equals("int") || !node.getChild( 1).get("type").equals("int")){
+                String message = "Binary operation " + operator + " is invalid between types that are not integer.";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(node),
+                        NodeUtils.getColumn(node),
+                        message,
+                        null));
+            }
+        }
         return null;
     }
+
+    private Void visitNegationExpr(JmmNode node, SymbolTable table){
+        node.put("type", "boolean");
+        if(!node.getChild(0).get("type").equals("boolean")){
+            String message = "Negation Operation '!' is invalid on a not boolean type";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        return null;
+    }
+
+    private Void visitParenthesisExpr(JmmNode node, SymbolTable table){
+        String childType = node.getChild(0).get("type");
+        node.put("type", childType);
+        return null;
+    }
+
 
     private Void visitLogicalExpr(JmmNode node, SymbolTable table){
         node.put("type", "boolean");
@@ -53,8 +102,36 @@ public class IntLit extends AnalysisPosVisitor {
         return null;
     }
 
+    private Void visitAssignStmt(JmmNode node, SymbolTable table){
+        if(!node.get("type").equals(node.getChild(0).get("type"))){
+            String message = "Invalid = operation between types!";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        return null;
+    }
+
     private Void visitBoolLit(JmmNode node, SymbolTable table){
         node.put("type", "boolean");
+        return null;
+    }
+
+    private Void visitMethodCallExpr(JmmNode node, SymbolTable table){
+        System.out.println(node.getChildren().size());
+        if(node.getNumChildren() != table.getParameters(node.get("name")).size()+1){
+            String message = "Wrong number of parameters";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+            return null;
+        }
         return null;
     }
 
