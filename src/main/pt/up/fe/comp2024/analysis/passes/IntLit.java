@@ -9,6 +9,7 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisPosVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
+import pt.up.fe.comp2024.utils.Comparator;
 
 public class IntLit extends AnalysisPosVisitor {
 
@@ -24,7 +25,18 @@ public class IntLit extends AnalysisPosVisitor {
         addVisit("MethodCallExpr", this::visitMethodCallExpr);
         addVisit("IfStmt", this::visitIfStmt);
         addVisit("WhileStmt", this::visitWhileStmt);
-        addVisit(Kind.RETURN_STMT, this::visitReturnStmt);
+        addVisit("ArrayExpr", this::visitArrayExpr);
+        addVisit("ArrayAccessExpr", this::visitArrayAccessExpr);
+    }
+
+    private Void visitArrayAccessExpr(JmmNode node, SymbolTable table){
+        node.put("type", "int");
+        return null;
+    }
+
+    private Void visitArrayExpr(JmmNode node, SymbolTable table){
+        node.put("type", "int[]");
+        return null;
     }
 
     private Void visitIntLit(JmmNode node, SymbolTable table){
@@ -36,6 +48,7 @@ public class IntLit extends AnalysisPosVisitor {
         node.put("type", "int");
 
         String operator = node.get("op");
+
         if(operator.equals("+")){
             if((!node.getChild(0).get("type").equals("int") || !node.getChild( 1).get("type").equals("int"))&&(!node.getChild(0).get("type").equals("string") || !node.getChild(1).get("type").equals("string"))){
                 String message = "Binary operation '+' is invalid between types that are not integer or string.";
@@ -47,6 +60,7 @@ public class IntLit extends AnalysisPosVisitor {
                         null));
             }
         }
+
         else if(operator.equals("-") || operator.equals("*") || operator.equals("/")){
             if(!node.getChild(0).get("type").equals("int") || !node.getChild( 1).get("type").equals("int")){
                 String message = "Binary operation " + operator + " is invalid between types that are not integer.";
@@ -163,8 +177,8 @@ public class IntLit extends AnalysisPosVisitor {
         }
         else{
             for(int i = 1; i < node.getNumChildren(); i++){
-                if(!node.getChild(i).get("type").equals(table.getParameters(node.get("name")).get(i).getType().getName())){
-                    String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(node.get("name")).get(i).getType().getName() + ". Found " + node.getChild(i).get("type");
+                if(!node.getChild(i).get("type").equals(table.getParameters(node.get("name")).get(i-1).getType().getName())){
+                    String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(node.get("name")).get(i-1).getType().getName() + ". Found " + node.getChild(i).get("type");
                     addReport(Report.newError(
                             Stage.SEMANTIC,
                             NodeUtils.getLine(node),
@@ -178,16 +192,4 @@ public class IntLit extends AnalysisPosVisitor {
         return null;
     }
 
-    private Void visitReturnStmt(JmmNode node, SymbolTable table){
-        if(!node.getChild(0).get("type").equals(table.getReturnType(node.get("name")))){
-            String message = "It doesnt match the method " + node.get("name") + " Expected: " + table.getReturnType(node.get("name")) + " found: " + node.getChild(0).get("type");
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(node),
-                    NodeUtils.getColumn(node),
-                    message,
-                    null));
-        }
-        return null;
-    }
 }

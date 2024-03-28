@@ -162,7 +162,7 @@ expr
     | expr op= SUB expr #BinaryExpr // a - b
     | expr op= LT expr #LogicalExpr // a < b
     | expr op= AND expr #LogicalExpr // a && b
-    | LBRACKET ( expr (COMMA expr)* )? RBRACKET #ArrayAccessExpr // [a, b, c]
+    | LBRACKET ( expr (COMMA expr)* )? RBRACKET #ArrayExpr // [a, b, c]
     | value=INTEGER #IntegerLiteral // 0
     | name=ID #VarRefExpr // a
     | name=TRUE #BooleanLiteral // true
