@@ -22,6 +22,8 @@ public class UndeclaredMethod extends AnalysisVisitor {
     @Override
     public void buildVisitor() {
         addVisit("MethodCallExpr", this::visitMethodCallExpr);
+        addVisit("FunctionParameters", this::checkFunctionParameters);
+        addVisit(Kind.METHOD_DECL,this::checkMethodtype);
     }
 
     private Void visitMethodCallExpr(JmmNode node, SymbolTable table) {
@@ -46,5 +48,35 @@ public class UndeclaredMethod extends AnalysisVisitor {
         return null;
     }
 
+    private Void checkFunctionParameters(JmmNode node, SymbolTable table){
+        for(int i = 0; i < node.getNumChildren(); i++){
+            if(i != node.getNumChildren() - 1 && node.getChild(i).get("name").equals("int...")){
+                String message = "Vararg must be the last parameter";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(node),
+                        NodeUtils.getColumn(node),
+                        message,
+                        null)
+                );
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private Void checkMethodtype(JmmNode node, SymbolTable table){
+        if(node.getChild(0).get("name").equals("int...")){
+            String message = "Method can not be declared with vararg type!";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null)
+            );
+        }
+        return null;
+    }
 
 }

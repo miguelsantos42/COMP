@@ -26,6 +26,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
         addVisit(Kind.ASSIGN_STMT, this::visitVarRefExpr);
+        addVisit(Kind.VAR_DECL, this::visitVarDecl);
     }
 
 
@@ -74,9 +75,19 @@ public class UndeclaredVariable extends AnalysisVisitor {
                 message,
                 null)
         );
-
         return null;
     }
-
-
+    private Void visitVarDecl(JmmNode node, SymbolTable table){
+        if(node.getChild(0).get("name").equals("int...")){
+            var message = String.format("Variable '%s' can not be declared with vararg type.", node);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null)
+            );
+        }
+        return null;
+    }
 }

@@ -1,12 +1,17 @@
-class Hello {
+import Adeus;
+class Hello extends Adeus {
     int ola;
 
     int[] array;
+    Hello joao;
+    Adeus maria;
 
-    int roberto(int i, int j){
-        array = [1,2,3,true];
-        ola = array[true];
-        ola = ola[1];
+    int roberto(Adeus adeus){
+        array = [1,2,3,4];
+        joao = this;
+        maria = this;
+        //Adeus.roberto();
+        this.roberto(this);
         return 1;
     }
 }
