@@ -5,6 +5,7 @@ class Hello extends Adeus {
     int[] array;
     Hello joao;
     Adeus maria;
+    Marcelo m;
 
     int roberto(Adeus adeus){
         array = [1,2,3,4];
