@@ -152,7 +152,9 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
             this.methodLocalVariables.put(node.getParent().get("name"), localVariables);
             for (JmmNode child : node.getChildren()) {
                 if (Objects.equals(child.getKind(), "VarDeclaration")) {
-                    Symbol var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
+                    boolean isArray = child.getChild(0).getKind().equals("IntVectorType1") || child.getChild(0).getKind().equals("IntVectorType2");
+                    String returnType = isArray ? "int" : child.getChild(0).get("name");
+                    Symbol var = new Symbol(new Type(returnType, false), child.get("name"));
                     localVariables.add(var);
                     this.methodLocalVariables.put(node.getParent().get("name"), localVariables);
                 }
