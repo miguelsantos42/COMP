@@ -1,31 +1,10 @@
-import Adeus;
-class Hello extends Adeus{
-    int ola;
 
-    int[] array;
-    Hello joao;
-    Adeus maria;
+class MethodsAndFields{
 
+	public int getField1(){
+	    int a;
+	    a = 1;
+		return a;
+	}
 
-    int roberto(boolean adeus){
-        array = [1,2,3,4];
-        joao = this;
-        //Adeus.roberto();
-        ola = 1 + this.gil();
-        ola = this.gil();
-        array = this.gil();
-        if(this.gil() < 100){
-
-        }
-        else{
-
-        }
-        while(this.gil()){
-            //this.gil().length;
-            this.gil().length;
-            this.gil()[this.gil()];
-            this.roberto(this.gil());
-        }
-        return 1;
-    }
 }

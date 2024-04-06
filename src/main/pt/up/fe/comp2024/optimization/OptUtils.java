@@ -32,7 +32,7 @@ public class OptUtils {
 
     public static String toOllirType(JmmNode typeNode) {
 
-        TYPE.checkOrThrow(typeNode);
+        //TYPE.checkOrThrow(typeNode);
 
         String typeName = typeNode.get("name");
 

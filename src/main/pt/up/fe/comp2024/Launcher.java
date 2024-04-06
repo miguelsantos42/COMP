@@ -2,8 +2,10 @@ package pt.up.fe.comp2024;
 
 import pt.up.fe.comp.TestUtils;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp2024.analysis.JmmAnalysisImpl;
+import pt.up.fe.comp2024.optimization.JmmOptimizationImpl;
 import pt.up.fe.comp2024.parser.JmmParserImpl;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsSystem;
@@ -37,12 +39,13 @@ public class Launcher {
         System.out.println(parserResult.getRootNode().toTree());
 
         // Optimization stage
-//        JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
-//        OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
-//        TestUtils.noErrors(ollirResult.getReports());
+
+        JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
+        OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
+        TestUtils.noErrors(ollirResult.getReports());
 
         // Print OLLIR code
-        //System.out.println(ollirResult.getOllirCode());
+        System.out.println(ollirResult.getOllirCode());
 
         // Code generation stage
 //        JasminBackendImpl jasminGen = new JasminBackendImpl();

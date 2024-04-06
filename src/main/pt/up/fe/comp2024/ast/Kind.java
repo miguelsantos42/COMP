@@ -9,9 +9,10 @@ import java.util.Set;
 public enum Kind {
     PROGRAM,
     CLASS_DECL,
-    VAR_DECL,
+    CLASS_BODY,
     TYPE,
     METHOD_DECL,
+    METHOD_CODE_BLOCK,
     PARAM,
     ASSIGN_STMT,
     RETURN_STMT,
@@ -73,6 +74,7 @@ public enum Kind {
      * @return
      */
     public boolean check(JmmNode node) {
+        System.out.println(node.getKind() + " " + getNodeName());
         return node.getKind().equals(getNodeName());
     }
 
