@@ -15,6 +15,8 @@ import static pt.up.fe.comp2024.ast.Kind.*;
 public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private static final String SPACE = " ";
+
+    private static final String IMPORT = "import ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
     private final String NL = "\n";
@@ -36,9 +38,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     protected void buildVisitor() {
 
         addVisit(PROGRAM, this::visitProgram);
+        addVisit(IMPORT_DECL, this::visitImportDeclaration);
         addVisit(CLASS_DECL, this::visitClass);
         addVisit(CLASS_BODY, this::visitClassBody);
+        addVisit(MAIN_METHOD_DECL, this::visitMainMethodDecl);
         addVisit(METHOD_DECL, this::visitMethodDecl);
+        addVisit(METHOD_CODE_BLOCK_WITHOUT_RETURN, this::visitMethodCodeBlock);
         addVisit(METHOD_CODE_BLOCK, this::visitMethodCodeBlock);
         addVisit(PARAM, this::visitParam);
         addVisit(RETURN_STMT, this::visitReturn);
@@ -47,6 +52,36 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         setDefaultVisit(this::defaultVisit);
     }
 
+    private String visitImportDeclaration(JmmNode jmmNode, Void unused) {
+        System.out.println("visiting import declaration");
+
+        StringBuilder code = new StringBuilder();
+        code.append(IMPORT);
+        code.append(jmmNode.get("ID"));
+        code.append(END_STMT);
+
+
+        return code.toString();
+    }
+
+    private String visitMainMethodDecl(JmmNode jmmNode, Void unused) {
+        System.out.println("visiting main method decl");
+
+        StringBuilder code = new StringBuilder(".method public static main(args.array.String).V {\n");
+
+        for (var child : jmmNode.getChildren()) {
+            code.append(visit(child));
+        }
+
+        code.append("ret.V");
+        code.append(END_STMT);
+
+        code.append(R_BRACKET);
+        code.append(NL);
+
+
+        return code.toString();
+    }
 
 
     private String visitClassBody(JmmNode jmmNode, Void unused) {
@@ -65,8 +100,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
-        System.out.println("visiting method code block");
-        System.out.println(jmmNode.getChildren());
+        System.out.println("visiting method code block " + jmmNode);
 
         for (var child : jmmNode.getChildren()) {
             code.append(visit(child));
@@ -137,20 +171,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
-    public static String[] stringToArray(String input) {
-        // Remove square brackets and split the string by commas
-        String[] elements = input.replaceAll("[\\[\\]]", "").split(",");
 
-        // Create an array of the same size as the number of elements
-        String[] array = new String[elements.length];
-
-        // Copy elements to the array
-        for (int i = 0; i < elements.length; i++) {
-            array[i] = elements[i];
-        }
-
-        return array;
-    }
 
     private String visitParam(JmmNode node, Void unused) {
         System.out.println("visiting param");
@@ -172,7 +193,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitMethodDecl(JmmNode node, Void unused) {
         System.out.println("visiting method decl");
-        System.out.println(node.getChildren());
 
         StringBuilder code = new StringBuilder(".method ");
 
@@ -224,12 +244,24 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
 
         code.append(table.getClassName());
+        if(table.getSuper() != null) {
+            code.append(" extends ");
+            code.append(table.getSuper());
+        }
         code.append(L_BRACKET);
 
         code.append(NL);
         var needNl = true;
 
-        code.append(buildConstructor());
+        for(var field : table.getFields()) {
+            code.append(".field ");
+            code.append("public ");
+            code.append(field.getName());
+            code.append(OptUtils.toOllirType(field.getType()));
+            code.append(END_STMT);
+        }
+
+
 
         for (var child : node.getChildren()) {
             var result = visit(child);
@@ -242,6 +274,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append(result);
         }
 
+        code.append(buildConstructor());
 
         code.append(R_BRACKET);
 
@@ -276,6 +309,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
      * @return
      */
     private String defaultVisit(JmmNode node, Void unused) {
+        System.out.println("visiting default: " + node);
 
         for (var child : node.getChildren()) {
             visit(child);
@@ -283,4 +317,22 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         return "";
     }
+
+
+    public static String[] stringToArray(String input) {
+        // Remove square brackets and split the string by commas
+        String[] elements = input.replaceAll("[\\[\\]]", "").split(",");
+
+        // Create an array of the same size as the number of elements
+        String[] array = new String[elements.length];
+
+        // Copy elements to the array
+        for (int i = 0; i < elements.length; i++) {
+            array[i] = elements[i];
+        }
+
+        return array;
+    }
 }
+
+

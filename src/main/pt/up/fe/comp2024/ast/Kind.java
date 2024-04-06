@@ -8,21 +8,26 @@ import java.util.Set;
 
 public enum Kind {
     PROGRAM,
+    IMPORT_DECL,
     CLASS_DECL,
     CLASS_BODY,
     TYPE,
+    MAIN_METHOD_DECL,
     METHOD_DECL,
     METHOD_CODE_BLOCK,
+
+    METHOD_CODE_BLOCK_WITHOUT_RETURN,
     PARAM,
     ASSIGN_STMT,
     RETURN_STMT,
     BINARY_EXPR,
     INTEGER_LITERAL,
+    BOOLEAN_LITERAL,
     VAR_REF_EXPR;
 
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR);
+    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, BOOLEAN_LITERAL, VAR_REF_EXPR);
 
     private final String name;
 
