@@ -1,6 +1,6 @@
 package pt.up.fe.comp2024.analysis.passes;
 
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
+
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
@@ -8,7 +8,7 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
-import pt.up.fe.specs.util.SpecsCheck;
+
 
 import java.util.Optional;
 
@@ -26,16 +26,43 @@ public class UndeclaredMethod extends AnalysisVisitor {
         addVisit(Kind.METHOD_DECL,this::checkMethodtype);
     }
 
+    //todo add fluid type to method parameters
     private Void visitMethodCallExpr(JmmNode node, SymbolTable table) {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var nodeName = node.get("name");
         Optional<String> method = table.getMethods().stream().filter(param->param.equals(nodeName)).findFirst();
         if(method.isPresent()){
             node.put("type",table.getReturnType(nodeName).getName());
+            node.put("isArray",String.valueOf(table.getReturnType(nodeName).isArray()));
+            return null;
+        }
+        //todo: missing valid function retrun for retrun, and parameters; alse e carefull with assigns
+        else if((!table.getSuper().equals("not extended") && node.getChild(0).getKind().equals("ThisExpr")) ||
+                (!node.getChild(0).getKind().equals("ThisExpr") && (!node.getChild(0).get("type").equals(table.getClassName()) || !table.getSuper().equals("not extended")))){
+            if(node.getParent().getKind().equals("LogicalExpr") && node.getParent().get("op").equals("&&")){
+                node.put("type", "boolean");
+                node.put("isArray", "false");
+            }
+            else if(node.getParent().getKind().equals("AssignStmt")){
+                node.put("type", node.getParent().get("type"));
+                node.put("isArray", "false");
+            }
+            else if(node.getParent().getKind().equals("IfStmt") || node.getParent().getKind().equals("WhileStmt")){
+                node.put("type", "boolean");
+                node.put("isArray", "false");
+            }
+            else if(node.getParent().getKind().equals("ArrayLengthExpr") || (node.getParent().getKind().equals("ArrayAccessExpr") && (node.getIndexOfSelf() == 0))){
+                node.put("type", "int");
+                node.put("isArray", "true");
+            }
+            else{
+                node.put("type", "int");
+                node.put("isArray", "false");
+            }
             return null;
         }
 
-        // Create error report
+        //Create error report
         var message = String.format("Method '%s' does not exist.", nodeName);
         addReport(Report.newError(
                 Stage.SEMANTIC,

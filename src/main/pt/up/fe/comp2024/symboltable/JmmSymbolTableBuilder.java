@@ -4,9 +4,6 @@ import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
-import pt.up.fe.comp.jmm.report.Report;
-import pt.up.fe.comp.jmm.report.Stage;
-import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,9 +56,9 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
         System.out.println("\nVisiting Import\n");
         String importName = node.get("name");
         String importNormalized = importName.replace(']', ' ')
-                                            .replace('[',' ')
-                                            .replace(", ", ".")
-                                            .strip();
+                .replace('[',' ')
+                .replace(", ", ".")
+                .strip();
         this.imports.add(importNormalized);
         System.out.println("Import Name: " + importNormalized);
         return s;
@@ -106,14 +103,15 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
                 String parameters = child.get("name");
 
                 String[] paramList = parameters.replace(']', ' ')
-                                                .replace('[',' ')
-                                                .strip()
-                                                .split(", ");
+                        .replace('[',' ')
+                        .strip()
+                        .split(", ");
                 int i = 0;
                 for (JmmNode param : child.getChildren()) {
                     String paramName = paramList[i++];
-                    String paramType = param.get("name");
-                    params.add(new Symbol(new Type(paramType, false), paramName));
+                    boolean isArray = param.getKind().equals("IntVectorType1") || param.getKind().equals("IntVectorType2");
+                    String paramType = isArray ? "int" : param.get("name");
+                    params.add(new Symbol(new Type(paramType, isArray), paramName));
                 }
 
                 this.methodParams.put(methodName, params);
@@ -152,7 +150,11 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
             this.methodLocalVariables.put(node.getParent().get("name"), localVariables);
             for (JmmNode child : node.getChildren()) {
                 if (Objects.equals(child.getKind(), "VarDeclaration")) {
-                    Symbol var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
+                    Symbol var;
+                    if(child.getChild(0).getKind().equals("IntVectorType1") || child.getChild(0).getKind().equals("IntVectorType1"))
+                        var = new Symbol(new Type("int", true), child.get("name"));
+                    else
+                        var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
                     localVariables.add(var);
                     this.methodLocalVariables.put(node.getParent().get("name"), localVariables);
                 }
@@ -163,23 +165,28 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
             this.methodLocalVariables.put("main", localVariables);
             for (JmmNode child : node.getChildren()) {
                 if (Objects.equals(child.getKind(), "VarDeclaration")) {
-                    Symbol var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
+                    Symbol var;
+                    if(child.getChild(0).getKind().equals("IntVectorType1") || child.getChild(0).getKind().equals("IntVectorType1"))
+                        var = new Symbol(new Type("int", true), child.get("name"));
+                    else
+                        var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
                     localVariables.add(var);
                     this.methodLocalVariables.put("main", localVariables);
                 }
             }
         }
-
         return s;
     }
 
     private String visitVarDeclaration(JmmNode node, String s) {
-        System.out.println("\nVisiting Var Declaration\n");
         String varName = node.get("name");
         String varType = node.getChild(0).get("name");
-        System.out.println("Var Name: " + varName);
-        System.out.println("Var Type: " + varType);
-        this.fields.add(new Symbol(new Type(varType, false), varName));
+        boolean isArray = false;
+        if(node.getChild(0).getKind().equals("IntVectorType1") || node.getChild(0).getKind().equals("IntVectorType2")) {
+            isArray = true;
+            varType = "int";
+        }
+        this.fields.add(new Symbol(new Type(varType, isArray), varName));
         return s;
     }
 }

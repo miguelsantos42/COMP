@@ -11,100 +11,74 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.utils.Comparator;
 
+import java.util.Optional;
+
 public class IntLit extends AnalysisPosVisitor {
 
     @Override
     public void buildVisitor() {
         addVisit(Kind.INTEGER_LITERAL, this::visitIntLit);
+        addVisit("BooleanLiteral", this::visitBoolLit);
+        addVisit("ThisExpr", this::visitThisExpr);
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         addVisit("LogicalExpr", this::visitLogicalExpr);
-        addVisit("BooleanLiteral", this::visitBoolLit);
         addVisit("NegationExpr", this::visitNegationExpr);
         addVisit("ParenthesisExpr", this::visitParenthesisExpr);
-        addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
-        addVisit("MethodCallExpr", this::visitMethodCallExpr);
         addVisit("IfStmt", this::visitIfStmt);
         addVisit("WhileStmt", this::visitWhileStmt);
         addVisit("ArrayExpr", this::visitArrayExpr);
         addVisit("ArrayAccessExpr", this::visitArrayAccessExpr);
         addVisit("ArrayLengthExpr", this::visitArrayLengthExpr);
-        addVisit("ThisExpr", this::visitExpr);
+        addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
+        addVisit("NewObjectExpr", this::visitNewObjectExpr);
+        addVisit("MethodCallExpr", this::visitMethodCallExpr);
     }
 
-    private Void visitExpr(JmmNode node, SymbolTable table){
-        node.put("type", table.getClassName());
-        return null;
-    }
-
-
-    private Void visitArrayAccessExpr(JmmNode node, SymbolTable table){
-
-        node.put("type", "int");
-        if(!node.getChild(0).get("type").equals("int[]") && !node.getChild(0).get("type").equals("int...")){
-            String message = "Array access index must be type int[]";
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(node),
-                    NodeUtils.getColumn(node),
-                    message,
-                    null));
-        }
-        if(!node.getChild(1).get("type").equals("int")){
-            String message = "Array access index must be type int";
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(node),
-                    NodeUtils.getColumn(node),
-                    message,
-                    null));
-        }
-
-        return null;
-    }
-
-    private Void visitArrayExpr(JmmNode node, SymbolTable table){
-
-        node.put("type", "int[]");
-        for(JmmNode number : node.getChildren()){
-            if(!number.get("type").equals("int")){
-                String message = "Array size must be of type int";
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(node),
-                        NodeUtils.getColumn(node),
-                        message,
-                        null));
-            }
-        }
-        return null;
-    }
-
-    private  Void visitArrayLengthExpr(JmmNode node, SymbolTable table){
-        if(!node.getChild(0).get("type").equals("int[]") && !node.getChild(0).get("type").equals("int...")){
-            String message = "Length can not be used on type" + node.getChild(0).get("type");
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(node),
-                    NodeUtils.getColumn(node),
-                    message,
-                    null));
-        }
+    private Void visitBoolLit(JmmNode node, SymbolTable table){
+        node.put("type", "boolean");
+        node.put("isArray", "false");
         return null;
     }
 
     private Void visitIntLit(JmmNode node, SymbolTable table){
         node.put("type","int");
+        node.put("isArray", "false");
+        return null;
+    }
+
+    private Void visitThisExpr(JmmNode node, SymbolTable table){
+        node.put("type", table.getClassName());
+        node.put("isArray", "false");
         return null;
     }
 
     private Void visitBinaryExpr(JmmNode node, SymbolTable table){
         node.put("type", "int");
+        node.put("isArray", "false");
 
         String operator = node.get("op");
+        if(node.getChild(0).get("type").equals("int") && node.getChild( 1).get("type").equals("int") && node.getChild(0).get("isArray").equals("false") && node.getChild(1).get("isArray").equals("false")){
+            return null;
+        }else {
+            String message = "Binary operation " + operator + " is invalid between types that are not integer.";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        return null;
+    }
 
-        if(operator.equals("+")){
-            if((!node.getChild(0).get("type").equals("int") || !node.getChild( 1).get("type").equals("int"))&&(!node.getChild(0).get("type").equals("string") || !node.getChild(1).get("type").equals("string"))){
-                String message = "Binary operation '+' is invalid between types that are not integer or string.";
+    private Void visitLogicalExpr(JmmNode node, SymbolTable table){
+        node.put("type", "boolean");
+        node.put("isArray", "false");
+        if(node.get("op").equals("&&")){
+            if(node.getChild(0).get("type").equals("boolean") && node.getChild(1).get("type").equals("boolean")){
+                return null;
+            }else {
+                String message = "Invalid AND operation between types!";
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(node),
@@ -113,10 +87,11 @@ public class IntLit extends AnalysisPosVisitor {
                         null));
             }
         }
-
-        else if(operator.equals("-") || operator.equals("*") || operator.equals("/")){
-            if(!node.getChild(0).get("type").equals("int") || !node.getChild( 1).get("type").equals("int")){
-                String message = "Binary operation " + operator + " is invalid between types that are not integer.";
+        else if(node.get("op").equals("<")){
+            if (node.getChild(0).get("type").equals("int") && node.getChild(1).get("type").equals("int") && node.getChild(0).get("isArray").equals("false") && node.getChild(1).get("isArray").equals("false")) {
+                return null;
+            }else {
+                String message = "Invalid LT operation between types!";
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(node),
@@ -130,6 +105,7 @@ public class IntLit extends AnalysisPosVisitor {
 
     private Void visitNegationExpr(JmmNode node, SymbolTable table){
         node.put("type", "boolean");
+        node.put("isArray", "false");
         if(!node.getChild(0).get("type").equals("boolean")){
             String message = "Negation Operation '!' is invalid on a not boolean type";
             addReport(Report.newError(
@@ -145,14 +121,32 @@ public class IntLit extends AnalysisPosVisitor {
     private Void visitParenthesisExpr(JmmNode node, SymbolTable table){
         String childType = node.getChild(0).get("type");
         node.put("type", childType);
+        node.put("isArray", node.getChild(0).get("isArray"));
         return null;
     }
 
+    private Void visitArrayExpr(JmmNode node, SymbolTable table){
+        node.put("type", "int");
+        node.put("isArray", "true");
+        for(JmmNode number : node.getChildren()){
+            if(!number.get("type").equals("int") || number.get("isArray").equals("true")){
+                String message = "Array elements must be of type int";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(node),
+                        NodeUtils.getColumn(node),
+                        message,
+                        null));
+            }
+        }
+        return null;
+    }
 
-    private Void visitLogicalExpr(JmmNode node, SymbolTable table){
-        node.put("type", "boolean");
-        if(node.get("op").equals("&&") && (!node.getChild(0).get("type").equals("boolean")||(!node.getChild(1).get("type").equals("boolean")))){
-            String message = "Invalid AND operation between types!";
+    private Void visitArrayAccessExpr(JmmNode node, SymbolTable table){
+        node.put("type", "int");
+        node.put("isArray", "false");
+        if(!node.getChild(0).get("isArray").equals("true")){
+            String message = "Array access index must be type int[]";
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(node),
@@ -160,8 +154,8 @@ public class IntLit extends AnalysisPosVisitor {
                     message,
                     null));
         }
-        else if(node.get("op").equals("<") && (!node.getChild(0).get("type").equals("int")||(!node.getChild(1).get("type").equals("int")))){
-            String message = "Invalid LT operation between types!";
+        if(!node.getChild(1).get("type").equals("int") || node.getChild(1).get("isArray").equals("true")){
+            String message = "Array access index must be type int";
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(node),
@@ -169,12 +163,13 @@ public class IntLit extends AnalysisPosVisitor {
                     message,
                     null));
         }
+
         return null;
     }
 
-    private Void visitAssignStmt(JmmNode node, SymbolTable table){
-        if(!node.get("type").equals(node.getChild(0).get("type")) && !(node.get("type").equals(table.getSuper()) && node.getChild(0).get("type").equals(table.getClassName()))){
-            String message = "Invalid = operation between types!";
+    private  Void visitArrayLengthExpr(JmmNode node, SymbolTable table){
+        if(!node.getChild(0).get("isArray").equals("true")){
+            String message = "Length can not be used on type" + node.getChild(0).get("type");
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(node),
@@ -182,11 +177,6 @@ public class IntLit extends AnalysisPosVisitor {
                     message,
                     null));
         }
-        return null;
-    }
-
-    private Void visitBoolLit(JmmNode node, SymbolTable table){
-        node.put("type", "boolean");
         return null;
     }
 
@@ -216,8 +206,46 @@ public class IntLit extends AnalysisPosVisitor {
         return null;
     }
 
+    private Void visitAssignStmt(JmmNode node, SymbolTable table){
+        String childType = node.getChild(0).get("type");
+        if( (node.get("type").equals(childType) && node.get("isArray").equals(node.getChild(0).get("isArray"))) || (node.get("type").equals(table.getSuper()) && childType.equals(table.getClassName()))){
+            return null;
+        } else {
+            String message = "Invalid = operation between types!";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        return null;
+    }
+
+
+    private Void visitNewObjectExpr(JmmNode node, SymbolTable table){
+        if(table.getImports().stream().noneMatch(name -> name.equals(node.get("name"))) && !(node.get("name").equals(table.getClassName()))){
+            var message = String.format("Class '%s' is not defined", node);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null)
+            );
+        }
+        node.put("type", node.get("name"));
+        node.put("isArray", "false");
+        return null;
+    }
+
     private Void visitMethodCallExpr(JmmNode node, SymbolTable table){
-        String nodeName = node.get("name");
+        var nodeName = node.get("name");
+        Optional<String> method = table.getMethods().stream().filter(param->param.equals(nodeName)).findFirst();
+        if(method.isEmpty()){
+            return null;
+        }
+
         boolean hasVarArg = table.getParameters(nodeName).get(table.getParameters(nodeName).size()-1).getType().getName().equals("int...");
         if((node.getNumChildren() != table.getParameters(nodeName).size()+1)){
             if(hasVarArg){
@@ -254,11 +282,12 @@ public class IntLit extends AnalysisPosVisitor {
                         NodeUtils.getColumn(node),
                         message,
                         null));}
-                return null;
-            }
+            return null;
+        }
         else{
             for(int i = 1; i < node.getNumChildren(); i++){
-                if((!node.getChild(i).get("type").equals(table.getParameters(node.get("name")).get(i-1).getType().getName())) && !(table.getParameters(node.get("name")).get(i-1).getType().getName().equals("int...") && (node.getChild(i).get("type").equals("int[]") || node.getChild(i).get("type").equals("int"))) && !(table.getParameters(node.get("name")).get(i-1).getType().getName()).equals(table.getSuper()) && node.getChild(i).get("type").equals(table.getClassName())){
+                if(node.getChild(i).get("type").equals(table.getParameters(method.get()).get(i - 1).getType().getName()) && node.getChild(i).get("isArray").equals(String.valueOf(table.getParameters(method.get()).get(i - 1).getType().isArray()))){
+                } else {
                     String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(node.get("name")).get(i-1).getType().getName() + ". Found " + node.getChild(i).get("type");
                     addReport(Report.newError(
                             Stage.SEMANTIC,

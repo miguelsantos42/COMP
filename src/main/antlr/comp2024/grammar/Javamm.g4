@@ -155,7 +155,7 @@ expr
     | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr // a.method(b, c) //MainAndFoo might be this
     | EXCLAMATION expr #NegationExpr // !a
     | NEW INT LBRACKET expr RBRACKET #NewArrayExpr // new int[a]
-    | NEW ID LPAREN RPAREN #NewObjectExpr // new A()
+    | NEW name=ID LPAREN RPAREN #NewObjectExpr // new A()
     | expr op= MUL expr #BinaryExpr // a * b
     | expr op= DIV expr #BinaryExpr // a / b
     | expr op= ADD expr #BinaryExpr // a + b
@@ -169,6 +169,3 @@ expr
     | name=FALSE #BooleanLiteral // false
     | name=THIS #ThisExpr // this
     ;
-
-
-

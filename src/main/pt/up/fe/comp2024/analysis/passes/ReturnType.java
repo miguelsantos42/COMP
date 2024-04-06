@@ -1,6 +1,5 @@
 package pt.up.fe.comp2024.analysis.passes;
 
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
@@ -8,9 +7,7 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
-import pt.up.fe.specs.util.SpecsCheck;
 
-import java.util.Optional;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -34,7 +31,9 @@ public class ReturnType extends AnalysisVisitor {
     }
 
     private Void visitReturnStmt(JmmNode node, SymbolTable table){
-        if(!node.getChild(0).get("type").equals(table.getReturnType(currentMethod).getName())){
+        if(node.getChild(0).get("type").equals(table.getReturnType(currentMethod).getName()) && node.getChild(0).get("isArray").equals(String.valueOf(table.getReturnType(currentMethod).isArray()))){
+            return null;
+        } else {
             String message = "It doesnt match the method " + currentMethod + " Expected: " + table.getReturnType(currentMethod) + " found: " + node.getChild(0).get("type");
             addReport(Report.newError(
                     Stage.SEMANTIC,
