@@ -140,11 +140,11 @@ type
     ;
 
 stmt
-    : name = ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
+    : name= ID EQUALS expr SEMICOLON #AssignStmt // a = 0;
     | LCURLY stmt* RCURLY #BlockStmt // { a = 0; }
     | IF LPAREN expr RPAREN stmt ELSE stmt   #IfStmt // if (a) a = 0; else a = 1;
     | WHILE LPAREN expr RPAREN stmt #WhileStmt // while (a) a = 0;
-    | name = ID LBRACKET expr RBRACKET EQUALS expr SEMICOLON #ArrayAssignStmt // a[0] = 0;
+    | name= ID LBRACKET expr RBRACKET EQUALS expr SEMICOLON #ArrayAssignStmt // a[0] = 0;
     | expr SEMICOLON #ExprStmt     // a.length; or a.method();
     ;
 
@@ -152,7 +152,7 @@ expr
     : LPAREN expr RPAREN #ParenthesisExpr // (a)
     | expr LBRACKET expr RBRACKET #ArrayAccessExpr // a[b]
     | expr DOT LENGTH #ArrayLengthExpr // a.length
-    | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr // a.method(b, c) //MainAndFoo might be this
+    | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr // a.method(b, c)
     | EXCLAMATION expr #NegationExpr // !a
     | NEW INT LBRACKET expr RBRACKET #NewArrayExpr // new int[a]
     | NEW name=ID LPAREN RPAREN #NewObjectExpr // new A()
