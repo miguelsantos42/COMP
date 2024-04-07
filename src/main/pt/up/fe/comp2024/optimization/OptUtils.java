@@ -36,10 +36,13 @@ public class OptUtils {
 
         String typeName = typeNode.get("name");
 
+
         return toOllirType(typeName);
     }
 
     public static String toOllirType(Type type) {
+        if(type.isArray() == true)
+            return toOllirType(type.getName() + "[]");
         return toOllirType(type.getName());
     }
 
@@ -48,6 +51,10 @@ public class OptUtils {
         String type = "." + switch (typeName) {
             case "int" -> "i32";
             case "boolean" -> "bool";
+            case "int[]" -> "array.i32";
+            case "boolean[]" -> "array.bool";
+            case "void" -> ".V";
+            case "string" -> "string";
             default -> throw new NotImplementedException(typeName);
         };
 
