@@ -92,7 +92,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 temp = OptUtils.getTemp();
                 code.append(temp).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
                 code.append(ASSIGN).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
-                code.append("getfield(this, ").append(fields.getName()).append(OptUtils.toOllirType(fields.getType())).append(")");
+                code.append("getfield(this, ").append(fields.getName()).append(OptUtils.toOllirType(fields.getType())).append(")"); //this might be something else
                 code.append(OptUtils.toOllirType(fields.getType())).append(END_STMT);
             }
         }

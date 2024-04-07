@@ -44,11 +44,15 @@ public class JasminGenerator {
         generators.put(Method.class, this::generateMethod);
         generators.put(AssignInstruction.class, this::generateAssign);
         generators.put(SingleOpInstruction.class, this::generateSingleOp);
+        generators.put(PutFieldInstruction.class, this::generatePutfield);
+        generators.put(GetFieldInstruction.class, this::generateGetfield);
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
     }
+
+
 
     public List<Report> getReports() {
         return reports;
@@ -96,7 +100,6 @@ public class JasminGenerator {
             if (method.isConstructMethod()) {
                 continue;
             }
-
             code.append(generators.apply(method));
         }
 
@@ -124,7 +127,6 @@ public class JasminGenerator {
 
         var methodName = method.getMethodName();
 
-        // TODO: Hardcoded param types and return type, needs to be expanded
         var params = new StringBuilder();
         for(var param : method.getParams()) {
             System.out.println("Param: " + param.getType());
@@ -227,6 +229,62 @@ public class JasminGenerator {
         };
 
         code.append(op).append(NL);
+
+        return code.toString();
+    }
+
+    private String generateGetfield(GetFieldInstruction getFieldInstruction) {
+        System.out.println("GetField: " + getFieldInstruction);
+        var code = new StringBuilder();
+
+        var className = ollirResult.getOllirClass().getClassName();
+
+        code.append("aload_0").append(NL);
+
+
+        var type = switch (getFieldInstruction.getFieldType().toString()) {
+            case "INT32" -> "I";
+            case "BOOLEAN" -> "Z";
+            case "STRING" -> "Ljava/lang/String;";
+            case "INT[]" -> "[I";
+            case "BOOLEAN[]" -> "[Z";
+            case "STRING[]" -> "[Ljava/lang/String;";
+            default -> throw new NotImplementedException(getFieldInstruction.getFieldType());
+        };
+
+        code.append("getfield ").append(className).append("/").append(getFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
+
+
+        return code.toString();
+
+    }
+
+    private String generatePutfield(PutFieldInstruction putFieldInstruction) {
+        System.out.println("PutField: " + putFieldInstruction);
+        var code = new StringBuilder();
+
+        var className = ollirResult.getOllirClass().getClassName();
+
+
+        code.append("aload_0").append(NL);
+
+        var value = putFieldInstruction.getValue();
+
+        code.append(generators.apply(value));
+
+
+        System.out.println("Field Type: " + putFieldInstruction.getOperands().get(1).getType()); //might not be the best way, what the I after the putfield instruction refer to?
+        var type = switch (putFieldInstruction.getOperands().get(1).getType().toString()) {
+            case "INT32" -> "I";
+            case "BOOLEAN" -> "Z";
+            case "STRING" -> "Ljava/lang/String;";
+            case "INT[]" -> "[I";
+            case "BOOLEAN[]" -> "[Z";
+            case "STRING[]" -> "[Ljava/lang/String;";
+            default -> throw new NotImplementedException(putFieldInstruction.getFieldType());
+        };
+
+        code.append("putfield ").append(className).append("/").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
 
         return code.toString();
     }
