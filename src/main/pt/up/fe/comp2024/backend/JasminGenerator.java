@@ -127,8 +127,9 @@ public class JasminGenerator {
         // TODO: Hardcoded param types and return type, needs to be expanded
         var params = new StringBuilder();
         for(var param : method.getParams()) {
+            System.out.println("Param: " + param.getType());
             switch (param.getType().toString()) {
-                case "INT" -> params.append("I");
+                case "INT32" -> params.append("I");
                 case "BOOLEAN" -> params.append("Z");
                 case "STRING" -> params.append("Ljava/lang/String;");
                 case "INT[]" -> params.append("[I");
