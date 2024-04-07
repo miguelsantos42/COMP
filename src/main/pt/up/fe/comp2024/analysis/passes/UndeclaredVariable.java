@@ -44,6 +44,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
         Optional<Symbol> variable = table.getFields().stream()
                 .filter(param -> param.getName().equals(varRefName))
                 .findFirst();
+
         if (variable.isPresent()) {
             Optional<Symbol> finalVariable = variable;
             if(varRefExpr.getParent().getKind().equals("AssignStmt") && table.getImports().stream().anyMatch(value -> value.equals(finalVariable.get().getType().getName()))){
@@ -83,6 +84,15 @@ public class UndeclaredVariable extends AnalysisVisitor {
                 varRefExpr.put("type", variable.get().getType().getName());
                 varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
             }
+            return null;
+        }
+
+        var variable_import = table.getImports().stream()
+                .filter(varDecl -> varDecl.equals(varRefName)).findFirst();
+
+        if (variable_import.isPresent()) {
+            varRefExpr.put("type", varRefName);
+            varRefExpr.put("isArray", "false");
             return null;
         }
 

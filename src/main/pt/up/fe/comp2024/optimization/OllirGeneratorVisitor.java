@@ -45,11 +45,37 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(METHOD_DECL, this::visitMethodDecl);
         addVisit(METHOD_CODE_BLOCK_WITHOUT_RETURN, this::visitMethodCodeBlock);
         addVisit(METHOD_CODE_BLOCK, this::visitMethodCodeBlock);
+        addVisit(METHOD_CALL_EXPR, this::visitMethodCallExpr);
         addVisit(PARAM, this::visitParam);
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private String visitMethodCallExpr(JmmNode jmmNode, Void unused) {
+        System.out.println("visiting method call expr");
+
+        StringBuilder code = new StringBuilder();
+
+
+        code.append("invokestatic(");
+        code.append(jmmNode.getJmmChild(0).get("name"));
+        code.append(", ");
+        code.append("\"");
+        code.append(jmmNode.get("name"));
+        code.append("\"");
+        code.append(",");
+        code.append(jmmNode.getChild(1).get("name"));
+        code.append(OptUtils.toOllirType(TypeUtils.getExprType(jmmNode.getJmmChild(1), table)));
+        code.append(").V");
+
+        code.append(END_STMT);
+
+
+        System.out.println("code: " + code.toString());
+
+        return code.toString();
     }
 
     private String visitImportDeclaration(JmmNode jmmNode, Void unused) {
@@ -244,7 +270,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
 
         code.append(table.getClassName());
-        if(table.getSuper() != null) {
+        if(table.getSuper() != "not extended") {
             code.append(" extends ");
             code.append(table.getSuper());
         }
@@ -310,12 +336,15 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
      */
     private String defaultVisit(JmmNode node, Void unused) {
         System.out.println("visiting default: " + node);
+        System.out.println("children: " + node.getChildren());
+
+        StringBuilder code = new StringBuilder();
 
         for (var child : node.getChildren()) {
-            visit(child);
+            code.append(visit(child));
         }
 
-        return "";
+        return code.toString();
     }
 
 
