@@ -72,7 +72,7 @@ public class JasminGenerator {
         // generate class name
         var className = ollirResult.getOllirClass().getClassName();
         code.append(".class ").append(className).append(NL).append(NL);
-
+        System.out.println("Class: " + className);
         // TODO: Hardcoded to Object, needs to be expanded
         code.append(".super java/lang/Object").append(NL);
 
@@ -108,18 +108,49 @@ public class JasminGenerator {
 
         // set method
         currentMethod = method;
+        System.out.println("Method: " + method.getMethodName());
 
         var code = new StringBuilder();
 
         // calculate modifier
+
+        System.out.println("Method: " + method.getMethodAccessModifier());
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
                 method.getMethodAccessModifier().name().toLowerCase() + " " :
                 "";
+        if(method.isStaticMethod()){
+            modifier += "static ";
+        }
 
         var methodName = method.getMethodName();
 
         // TODO: Hardcoded param types and return type, needs to be expanded
-        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+        var params = new StringBuilder();
+        for(var param : method.getParams()) {
+            switch (param.getType().toString()) {
+                case "INT" -> params.append("I");
+                case "BOOLEAN" -> params.append("Z");
+                case "STRING" -> params.append("Ljava/lang/String;");
+                case "INT[]" -> params.append("[I");
+                case "BOOLEAN[]" -> params.append("[Z");
+                case "STRING[]" -> params.append("[Ljava/lang/String;");
+                default -> throw new NotImplementedException(param.getType());
+            }
+        }
+
+        var returnType = switch (method.getReturnType().toString()) {
+            case "INT32" -> "I";
+            case "BOOLEAN" -> "Z";
+            case "STRING" -> "Ljava/lang/String;";
+            case "INT[]" -> "[I";
+            case "BOOLEAN[]" -> "[Z";
+            case "STRING[]" -> "[Ljava/lang/String;";
+            case "VOID" -> "V";
+            default -> throw new NotImplementedException(method.getReturnType());
+        };
+
+
+        code.append("\n.method ").append(modifier).append(methodName).append("(").append(params).append(")").append(returnType).append(NL);
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -201,9 +232,13 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // TODO: Hardcoded to int return type, needs to be expanded
-
-        code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        System.out.println(returnInst);
+        if(returnInst.getOperand() == null) {
+            code.append("return").append(NL);
+        } else {
+            code.append(generators.apply(returnInst.getOperand()));
+            code.append("ireturn").append(NL);
+        }
 
         return code.toString();
     }

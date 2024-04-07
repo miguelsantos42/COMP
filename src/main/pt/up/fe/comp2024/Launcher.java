@@ -2,9 +2,11 @@ package pt.up.fe.comp2024;
 
 import pt.up.fe.comp.TestUtils;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
+import pt.up.fe.comp.jmm.jasmin.JasminResult;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp2024.analysis.JmmAnalysisImpl;
+import pt.up.fe.comp2024.backend.JasminBackendImpl;
 import pt.up.fe.comp2024.optimization.JmmOptimizationImpl;
 import pt.up.fe.comp2024.parser.JmmParserImpl;
 import pt.up.fe.specs.util.SpecsIo;
@@ -48,12 +50,12 @@ public class Launcher {
         System.out.println(ollirResult.getOllirCode());
 
         // Code generation stage
-//        JasminBackendImpl jasminGen = new JasminBackendImpl();
-//        JasminResult jasminResult = jasminGen.toJasmin(ollirResult);
-//        TestUtils.noErrors(jasminResult.getReports());
+        JasminBackendImpl jasminGen = new JasminBackendImpl();
+        JasminResult jasminResult = jasminGen.toJasmin(ollirResult);
+        TestUtils.noErrors(jasminResult.getReports());
 
         // Print Jasmin code
-        //System.out.println(jasminResult.getJasminCode());
+        System.out.println(jasminResult.getJasminCode());
     }
 
 }
