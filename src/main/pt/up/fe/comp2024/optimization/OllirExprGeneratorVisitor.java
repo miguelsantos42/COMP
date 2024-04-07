@@ -6,6 +6,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.lang.invoke.StringConcatFactory;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -80,14 +82,36 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
         System.out.println("visiting var ref");
-        var id = node.get("name");
+        StringBuilder code = new StringBuilder();
+        var isField = false;
+        var temp = "";
+
+        for(var fields : table.getFields()) {
+            if(fields.getName().equals(node.get("name"))) {
+                isField = true;
+                temp = OptUtils.getTemp();
+                code.append(temp).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
+                code.append(ASSIGN).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
+                code.append("getfield(this, ").append(fields.getName()).append(OptUtils.toOllirType(fields.getType())).append(")");
+                code.append(OptUtils.toOllirType(fields.getType())).append(END_STMT);
+            }
+        }
+
         var isArray = node.get("isArray") == "true" ? true : false;
         var type = new Type(node.get("type"), isArray);
         String ollirType = OptUtils.toOllirType(type);
+        String real_code = "";
 
-        String code = id + ollirType;
+        if(!isField) {
+            var id = node.get("name");
+            real_code = id + ollirType;
+        }
+        else {
+            var id = temp;
+            real_code = temp + ollirType;
+        }
 
-        return new OllirExprResult(code);
+        return new OllirExprResult(real_code,code);
     }
 
     /**

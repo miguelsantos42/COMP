@@ -158,6 +158,7 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
+            System.out.println("Instruction: " + inst);
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
@@ -173,6 +174,7 @@ public class JasminGenerator {
     }
 
     private String generateAssign(AssignInstruction assign) {
+        System.out.println("Assign: " + assign);
         var code = new StringBuilder();
 
         // generate code for loading what's on the right
