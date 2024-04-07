@@ -46,12 +46,12 @@ public class JasminGenerator {
         generators.put(SingleOpInstruction.class, this::generateSingleOp);
         generators.put(PutFieldInstruction.class, this::generatePutfield);
         generators.put(GetFieldInstruction.class, this::generateGetfield);
+        generators.put(CallInstruction.class, this::generateCall);
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
     }
-
 
 
     public List<Report> getReports() {
@@ -289,6 +289,20 @@ public class JasminGenerator {
         return code.toString();
     }
 
+
+    private String generateCall(CallInstruction callInstruction) {
+        System.out.println("Call: " + callInstruction);
+        var code = new StringBuilder();
+
+        var className = ollirResult.getOllirClass().getClassName();
+
+        code.append("new ").append(className).append(NL);
+        code.append("dup").append(NL);
+
+        code.append("invokespecial ").append(className).append("/").append("<init>()V").append(NL);
+        return code.toString();
+
+    }
     private String generateReturn(ReturnInstruction returnInst) {
         var code = new StringBuilder();
 
