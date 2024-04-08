@@ -55,7 +55,7 @@ public class OptUtils {
             case "boolean[]" -> "array.bool";
             case "void" -> ".V";
             case "string" -> "string";
-            default -> throw new NotImplementedException(typeName);
+            default -> typeName;
         };
 
         return type;

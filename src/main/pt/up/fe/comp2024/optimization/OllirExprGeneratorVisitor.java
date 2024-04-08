@@ -31,6 +31,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(BOOLEAN_LITERAL, this::visitBoolean);
+        addVisit(NEW_OBJECT_EXPR, this::visitNewObjectExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -38,7 +39,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         System.out.println("visiting boolean");
         var boolType = new Type("boolean", false);
         String ollirBoolType = OptUtils.toOllirType(boolType);
-        String code = jmmNode.get("value") + ollirBoolType;
+        String code = jmmNode.get("name") + ollirBoolType;
         return new OllirExprResult(code);
     }
 
@@ -112,6 +113,28 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         return new OllirExprResult(real_code,code);
+    }
+
+
+    private OllirExprResult visitNewObjectExpr(JmmNode jmmNode, Void unused) {
+
+        System.out.println("visiting new object expr");
+
+        StringBuilder computation = new StringBuilder();
+        var type = "." + jmmNode.get("type");
+        var name = jmmNode.get("name");
+        var tmp = OptUtils.getTemp();
+
+        computation.append(tmp).append(type).append(SPACE)
+                .append(ASSIGN).append(type).append(SPACE)
+                .append("new").append("(").append(name).append(")").append(type).append(END_STMT);
+
+        computation.append("invokespecial(").append(tmp).append(type).append(", \"\").V").append(END_STMT);
+
+        StringBuilder code = new StringBuilder();
+        code.append(tmp).append(type);
+
+        return new OllirExprResult(code.toString(), computation);
     }
 
     /**

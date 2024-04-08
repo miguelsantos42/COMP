@@ -8,6 +8,8 @@ public class TypeUtils {
 
     private static final String INT_TYPE_NAME = "int";
 
+    private static final String BOOLEAN_TYPE_NAME = "boolean";
+
     public static String getIntTypeName() {
         return INT_TYPE_NAME;
     }
@@ -20,7 +22,6 @@ public class TypeUtils {
      * @return
      */
     public static Type getExprType(JmmNode expr, SymbolTable table) {
-        // TODO: Simple implementation that needs to be expanded
 
         var kind = Kind.fromString(expr.getKind());
 
@@ -28,6 +29,8 @@ public class TypeUtils {
             case BINARY_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
+            case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
+            case NEW_OBJECT_EXPR -> new Type(expr.get("name"), false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 

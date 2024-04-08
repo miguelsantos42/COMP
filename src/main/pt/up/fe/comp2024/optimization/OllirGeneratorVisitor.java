@@ -54,6 +54,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         setDefaultVisit(this::defaultVisit);
     }
 
+
+
+
+
+
+
+
+
     private String visitMethodClassCallExpr(JmmNode jmmNode, Void unused) {
         System.out.println("visiting method call expr");
 
@@ -137,8 +145,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         var lhs_type = OptUtils.toOllirType(TypeUtils.getExprType(node.getJmmChild(0), table));
         var lhs = node.get("name") + lhs_type;
+        System.out.println("lhs: " + lhs);
 
-        System.out.println("going to rhs varRef: " + node.getJmmChild(0));
+
         var rhs = exprVisitor.visit(node.getJmmChild(0));
 
         System.out.println("rhs: " + rhs.getCode());
@@ -159,7 +168,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
             // code to compute self
             // statement has type of lhs
-            Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
+            Type thisType =TypeUtils.getExprType(node.getJmmChild(0), table);
             String typeString = OptUtils.toOllirType(thisType);
 
 
