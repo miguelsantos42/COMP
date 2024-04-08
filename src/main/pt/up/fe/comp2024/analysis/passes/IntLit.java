@@ -28,7 +28,7 @@ public class IntLit extends AnalysisPosVisitor {
         addVisit("ArrayLengthExpr", this::visitArrayLengthExpr);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit("NewObjectExpr", this::visitNewObjectExpr);
-        addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
+        //addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
     }
 
     private Void visitBoolLit(JmmNode node, SymbolTable table){

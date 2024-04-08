@@ -22,6 +22,7 @@ public class UndeclaredMethod extends AnalysisVisitor {
     @Override
     public void buildVisitor() {
         addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
+        //addVisit("MethodCallExpr", this::visitMethodClassCallExpr);
         addVisit("FunctionParameters", this::checkFunctionParameters);
         addVisit(Kind.METHOD_DECL,this::checkMethodtype);
     }
