@@ -57,6 +57,9 @@ public class IntLit extends AnalysisPosVisitor {
         node.put("isArray", "false");
 
         String operator = node.get("op");
+        if(!node.getChild(0).hasAttribute("type") || !node.getChild(1).hasAttribute("type")){
+            return null;
+        }
         if(node.getChild(0).get("type").equals("int") && node.getChild( 1).get("type").equals("int") && node.getChild(0).get("isArray").equals("false") && node.getChild(1).get("isArray").equals("false")){
             return null;
         }else {
