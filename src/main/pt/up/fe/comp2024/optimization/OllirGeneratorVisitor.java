@@ -147,7 +147,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var lhs = node.get("name") + lhs_type;
         System.out.println("lhs: " + lhs);
 
-
+        System.out.println(node.getJmmChild(0));
         var rhs = exprVisitor.visit(node.getJmmChild(0));
 
         System.out.println("rhs: " + rhs.getCode());
@@ -164,7 +164,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         if(!isField_lhs){// code to compute the children
             code.append(rhs.getComputation());
-            System.out.println("rhs computation: " + rhs.getComputation());
+            System.out.println("rhs computations: " + rhs.getComputation());
 
             // code to compute self
             // statement has type of lhs
