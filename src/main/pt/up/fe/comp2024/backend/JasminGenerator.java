@@ -121,14 +121,14 @@ public class JasminGenerator {
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
                 method.getMethodAccessModifier().name().toLowerCase() + " " :
                 "";
-        if(method.isStaticMethod()){
+        if (method.isStaticMethod()) {
             modifier += "static ";
         }
 
         var methodName = method.getMethodName();
 
         var params = new StringBuilder();
-        for(var param : method.getParams()) {
+        for (var param : method.getParams()) {
             System.out.println("Param: " + param.getType());
             switch (param.getType().toString()) {
                 case "INT32" -> params.append("I");
@@ -161,10 +161,13 @@ public class JasminGenerator {
 
         for (var inst : method.getInstructions()) {
             System.out.println("Instruction: " + inst);
-            var instCode = StringLines.getLines(generators.apply(inst)).stream()
-                    .collect(Collectors.joining(NL + TAB, TAB, NL));
+            if (!(inst instanceof CallInstruction)) {
 
-            code.append(instCode);
+                var instCode = StringLines.getLines(generators.apply(inst)).stream()
+                        .collect(Collectors.joining(NL + TAB, TAB, NL));
+
+                code.append(instCode);
+            }
         }
 
         code.append(".end method\n");
@@ -175,13 +178,20 @@ public class JasminGenerator {
         return code.toString();
     }
 
+
     private String generateAssign(AssignInstruction assign) {
         System.out.println("Assign: " + assign);
         var code = new StringBuilder();
 
         // generate code for loading what's on the right
-        code.append(generators.apply(assign.getRhs()));
+        System.out.println("RHS: " + generators.apply(assign.getRhs()));
+        if(assign.getRhs() instanceof CallInstruction) {
+            code.append("");
+        } else {
 
+        }
+
+        code.append(generators.apply(assign.getRhs()));
         // store value in the stack in destination
         var lhs = assign.getDest();
 
@@ -194,8 +204,17 @@ public class JasminGenerator {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
-        // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        var type = switch (operand.getType().toString()) {
+            case "INT32" -> "istore_";
+            case "BOOLEAN" -> "istore_";
+            case "STRING" -> "Ljava/lang/String;";
+            case "INT[]" -> "[I";
+            case "BOOLEAN[]" -> "[Z";
+            case "STRING[]" -> "[Ljava/lang/String;";
+            default -> "astore_";
+        };
+
+        code.append(type).append(reg).append(NL);
 
         return code.toString();
     }
@@ -298,6 +317,8 @@ public class JasminGenerator {
 
         code.append("new ").append(className).append(NL);
         code.append("dup").append(NL);
+
+        //code.append(callInstruction.getOperands());
 
         code.append("invokespecial ").append(className).append("/").append("<init>()V").append(NL);
         return code.toString();

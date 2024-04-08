@@ -46,6 +46,7 @@ public class Launcher {
         OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         TestUtils.noErrors(ollirResult.getReports());
 
+
         // Print OLLIR code
         System.out.println(ollirResult.getOllirCode());
 
