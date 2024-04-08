@@ -24,6 +24,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
     @Override
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
+        addVisit("MainMethodDeclaration", this::visitMainMethodDecl);
         addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
         addVisit(Kind.ASSIGN_STMT, this::visitVarRefExpr);
         addVisit("IDType", this::visitIDType);
@@ -32,6 +33,11 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
+        return null;
+    }
+
+    private Void visitMainMethodDecl(JmmNode method, SymbolTable table){
+        currentMethod = "main";
         return null;
     }
 
@@ -57,34 +63,41 @@ public class UndeclaredVariable extends AnalysisVisitor {
             return null;
         }
 
+
         // Var is a parameter, return
-        variable = table.getParameters(currentMethod).stream()
-                .filter(param -> param.getName().equals(varRefName)).findFirst();
-        if(variable.isPresent()){
-            Optional<Symbol> finalVariable = variable;
-            if(varRefExpr.getParent().getKind().equals("AssignStmt") && table.getImports().stream().anyMatch(value -> value.equals(finalVariable.get().getType().getName()))){
-                varRefExpr.put("type", varRefExpr.getParent().get("type"));
-                varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
-            }else{
-                varRefExpr.put("type", variable.get().getType().getName());
-                varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
+        var parameters = table.getParameters(currentMethod);
+        if(parameters != null) {
+            variable = parameters.stream()
+                    .filter(param -> param.getName().equals(varRefName)).findFirst();
+            if (variable.isPresent()) {
+                Optional<Symbol> finalVariable = variable;
+                if (varRefExpr.getParent().getKind().equals("AssignStmt") && table.getImports().stream().anyMatch(value -> value.equals(finalVariable.get().getType().getName()))) {
+                    varRefExpr.put("type", varRefExpr.getParent().get("type"));
+                    varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
+                } else {
+                    varRefExpr.put("type", variable.get().getType().getName());
+                    varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
+                }
+                return null;
             }
-            return null;
         }
 
         // Var is a declared variable, return
-        variable = table.getLocalVariables(currentMethod).stream()
-                .filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
-        if (variable.isPresent()) {
-            Optional<Symbol> finalVariable = variable;
-            if(varRefExpr.getParent().getKind().equals("AssignStmt") && table.getImports().stream().anyMatch(value -> value.equals(finalVariable.get().getType().getName()))){
-                varRefExpr.put("type", varRefExpr.getParent().get("type"));
-                varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
-            }else{
-                varRefExpr.put("type", variable.get().getType().getName());
-                varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
+        var localVariables = table.getLocalVariables(currentMethod);
+        if(localVariables != null) {
+            variable = localVariables.stream()
+                    .filter(varDecl -> varDecl.getName().equals(varRefName)).findFirst();
+            if (variable.isPresent()) {
+                Optional<Symbol> finalVariable = variable;
+                if (varRefExpr.getParent().getKind().equals("AssignStmt") && table.getImports().stream().anyMatch(value -> value.equals(finalVariable.get().getType().getName()))) {
+                    varRefExpr.put("type", varRefExpr.getParent().get("type"));
+                    varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
+                } else {
+                    varRefExpr.put("type", variable.get().getType().getName());
+                    varRefExpr.put("isArray", String.valueOf(variable.get().getType().isArray()));
+                }
+                return null;
             }
-            return null;
         }
 
         var variable_import = table.getImports().stream()

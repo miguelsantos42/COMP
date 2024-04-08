@@ -327,13 +327,17 @@ public class JasminGenerator {
     private String generateReturn(ReturnInstruction returnInst) {
         var code = new StringBuilder();
 
-        // TODO: Hardcoded to int return type, needs to be expanded
         System.out.println(returnInst);
         if(returnInst.getOperand() == null) {
             code.append("return").append(NL);
         } else {
             code.append(generators.apply(returnInst.getOperand()));
-            code.append("ireturn").append(NL);
+            var type = switch (returnInst.getOperand().getType().toString()) {
+                case "INT32", "BOOLEAN" -> "i";
+                case "STRING" -> "a";
+                default -> throw new NotImplementedException(returnInst.getOperand().getType());
+            };
+            code.append(type).append("return").append(NL);
         }
 
         return code.toString();
