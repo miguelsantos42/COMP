@@ -48,12 +48,6 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
 
-        var variable_import = table.getImports().stream()
-                .filter(varDecl -> varDecl.equals(varRefName)).findFirst();
-
-        if(variable_import.isPresent()){
-            currentMethod = varRefName;
-        }
 
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
@@ -111,6 +105,8 @@ public class UndeclaredVariable extends AnalysisVisitor {
             }
         }
 
+        var variable_import = table.getImports().stream()
+                .filter(varDecl -> varDecl.equals(varRefName)).findFirst();
 
 
         if (variable_import.isPresent()) {
