@@ -7,6 +7,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.Objects;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -15,7 +17,6 @@ import static pt.up.fe.comp2024.ast.Kind.*;
 public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private static final String SPACE = " ";
-
     private static final String IMPORT = "import ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
@@ -45,7 +46,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(METHOD_DECL, this::visitMethodDecl);
         addVisit(METHOD_CODE_BLOCK_WITHOUT_RETURN, this::visitMethodCodeBlock);
         addVisit(METHOD_CODE_BLOCK, this::visitMethodCodeBlock);
-        addVisit(METHOD_CALL_EXPR, this::visitMethodCallExpr);
+        addVisit(METHOD_CLASS_CALL_EXPR, this::visitMethodClassCallExpr);
         addVisit(PARAM, this::visitParam);
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
@@ -53,7 +54,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         setDefaultVisit(this::defaultVisit);
     }
 
-    private String visitMethodCallExpr(JmmNode jmmNode, Void unused) {
+    private String visitMethodClassCallExpr(JmmNode jmmNode, Void unused) {
         System.out.println("visiting method call expr");
 
         StringBuilder code = new StringBuilder();
@@ -73,7 +74,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(END_STMT);
 
 
-        System.out.println("code: " + code.toString());
+        System.out.println("code: " + code);
 
         return code.toString();
     }
@@ -81,13 +82,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitImportDeclaration(JmmNode jmmNode, Void unused) {
         System.out.println("visiting import declaration");
 
-        StringBuilder code = new StringBuilder();
-        code.append(IMPORT);
-        code.append(jmmNode.get("ID"));
-        code.append(END_STMT);
-
-
-        return code.toString();
+        return IMPORT + jmmNode.get("ID") + END_STMT;
     }
 
     private String visitMainMethodDecl(JmmNode jmmNode, Void unused) {
@@ -140,8 +135,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         System.out.println("visiting assign stmt: " + node);
 
-
-
         var lhs_type = OptUtils.toOllirType(TypeUtils.getExprType(node.getJmmChild(0), table));
         var lhs = node.get("name") + lhs_type;
 
@@ -156,7 +149,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         for(var f : table.getFields()) {
             if(f.getName().equals(node.get("name"))) {
                 isField_lhs = true;
-                code.append("putfield(this, " + node.get("name") + lhs_type + ", " + rhs.getCode() + ").V" + END_STMT);
+                code.append("putfield(this, ").append(node.get("name")).append(lhs_type).append(", ").append(rhs.getCode()).append(").V").append(END_STMT);
             }
         }
 
@@ -216,19 +209,19 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitParam(JmmNode node, Void unused) {
         System.out.println("visiting param");
-        String code = "";
+        StringBuilder code = new StringBuilder();
         var id_array = stringToArray(node.get("name"));
 
         for(int i = 0; i < node.getNumChildren(); i++) {
             var typeCode = OptUtils.toOllirType(node.getJmmChild(i));
             var id  = id_array[i];
-            code += id + typeCode;
+            code.append(id).append(typeCode);
             if(i != node.getNumChildren() - 1){
-                code += ", ";
+                code.append(", ");
             }
         }
 
-        return code;
+        return code.toString();
     }
 
 
@@ -285,7 +278,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
 
         code.append(table.getClassName());
-        if(table.getSuper() != "not extended") {
+        if(!Objects.equals(table.getSuper(), "not extended")) {
             code.append(" extends ");
             code.append(table.getSuper());
         }
@@ -371,9 +364,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         String[] array = new String[elements.length];
 
         // Copy elements to the array
-        for (int i = 0; i < elements.length; i++) {
-            array[i] = elements[i];
-        }
+        System.arraycopy(elements, 0, array, 0, elements.length);
 
         return array;
     }

@@ -1,7 +1,5 @@
 package pt.up.fe.comp2024.analysis.passes;
 
-import org.antlr.v4.runtime.atn.SemanticContext;
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
@@ -9,7 +7,6 @@ import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisPosVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
-import pt.up.fe.comp2024.utils.Comparator;
 
 import java.util.Optional;
 
@@ -31,7 +28,7 @@ public class IntLit extends AnalysisPosVisitor {
         addVisit("ArrayLengthExpr", this::visitArrayLengthExpr);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit("NewObjectExpr", this::visitNewObjectExpr);
-        addVisit("MethodCallExpr", this::visitMethodCallExpr);
+        addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
     }
 
     private Void visitBoolLit(JmmNode node, SymbolTable table){
@@ -242,7 +239,7 @@ public class IntLit extends AnalysisPosVisitor {
         return null;
     }
 
-    private Void visitMethodCallExpr(JmmNode node, SymbolTable table){
+    private Void visitMethodClassCallExpr(JmmNode node, SymbolTable table){
         var nodeName = node.get("name");
         Optional<String> method = table.getMethods().stream().filter(param->param.equals(nodeName)).findFirst();
         if(method.isEmpty()){

@@ -21,13 +21,13 @@ public class UndeclaredMethod extends AnalysisVisitor {
 
     @Override
     public void buildVisitor() {
-        addVisit("MethodCallExpr", this::visitMethodCallExpr);
+        addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
         addVisit("FunctionParameters", this::checkFunctionParameters);
         addVisit(Kind.METHOD_DECL,this::checkMethodtype);
     }
 
     //todo add fluid type to method parameters
-    private Void visitMethodCallExpr(JmmNode node, SymbolTable table) {
+    private Void visitMethodClassCallExpr(JmmNode node, SymbolTable table) {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var nodeName = node.get("name");
         Optional<String> method = table.getMethods().stream().filter(param->param.equals(nodeName)).findFirst();
