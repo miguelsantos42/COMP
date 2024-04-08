@@ -42,9 +42,20 @@ public class UndeclaredVariable extends AnalysisVisitor {
     }
 
     private Void visitVarRefExpr(JmmNode varRefExpr, SymbolTable table) {
-        SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
+
+
+
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
+
+        var variable_import = table.getImports().stream()
+                .filter(varDecl -> varDecl.equals(varRefName)).findFirst();
+
+        if(variable_import.isPresent()){
+            currentMethod = varRefName;
+        }
+
+        SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
         // Var is a field, return
         Optional<Symbol> variable = table.getFields().stream()
@@ -100,8 +111,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
             }
         }
 
-        var variable_import = table.getImports().stream()
-                .filter(varDecl -> varDecl.equals(varRefName)).findFirst();
+
 
         if (variable_import.isPresent()) {
             varRefExpr.put("type", varRefName);
