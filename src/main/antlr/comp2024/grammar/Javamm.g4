@@ -153,7 +153,6 @@ expr
     | expr LBRACKET expr RBRACKET #ArrayAccessExpr // a[b]
     | expr DOT LENGTH #ArrayLengthExpr // a.length
     | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodClassCallExpr // a.method(b, c)
-    | name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr // method(a, b, c)
     | EXCLAMATION expr #NegationExpr // !a
     | NEW INT LBRACKET expr RBRACKET #NewArrayExpr // new int[a]
     | NEW name=ID LPAREN RPAREN #NewObjectExpr // new A()

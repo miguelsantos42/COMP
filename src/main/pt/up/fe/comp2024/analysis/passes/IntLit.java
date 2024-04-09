@@ -28,7 +28,7 @@ public class IntLit extends AnalysisPosVisitor {
         addVisit("ArrayLengthExpr", this::visitArrayLengthExpr);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit("NewObjectExpr", this::visitNewObjectExpr);
-        //addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
+        addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
     }
 
     private Void visitBoolLit(JmmNode node, SymbolTable table){
@@ -241,28 +241,96 @@ public class IntLit extends AnalysisPosVisitor {
 
     private Void visitMethodClassCallExpr(JmmNode node, SymbolTable table){
         var nodeName = node.get("name");
+
         Optional<String> method = table.getMethods().stream().filter(param->param.equals(nodeName)).findFirst();
         if(method.isEmpty()){
             return null;
         }
-
-        boolean hasVarArg = table.getParameters(nodeName).get(table.getParameters(nodeName).size()-1).getType().getName().equals("int...");
+        //todo there is a possible error when last parameter is of type int[] instead of int...
+        if(table.getParameters(nodeName).isEmpty() && node.getChildren().size() == 1){
+            return null;
+        } else if (table.getParameters(nodeName).isEmpty() && node.getChildren().size() == 1){
+            String message = "Wrong number of parameters";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        boolean hasVarArg = table.getParameters(nodeName).get(table.getParameters(nodeName).size()-1).getType().isArray();
         if((node.getNumChildren() != table.getParameters(nodeName).size()+1)){
             if(hasVarArg){
-                for(int i = 1; i < node.getNumChildren(); i++){
-                    if(i >= table.getParameters(nodeName).size()){
-                        if(!node.getChild(i).get("type").equals("int")){
-                            String message = "Type " + node.getChild(i).get("type") + " incompetible with var arg of type int";
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(node),
-                                    NodeUtils.getColumn(node),
-                                    message,
-                                    null));
-                            return null;
+                if(node.getNumChildren() > table.getParameters(nodeName).size()+1){
+                    for (int i = 1; i < node.getNumChildren(); i++) {
+                        if(i < table.getParameters(nodeName).size()){
+                            if(node.getChild(i).get("type").equals(table.getParameters(nodeName).get(i - 1).getType().getName()) && node.getChild(i).get("isArray").equals(String.valueOf(table.getParameters(nodeName).get(i - 1).getType().isArray()))){
+                            }else {
+                                String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(node.get("name")).get(i-1).getType().getName() + ". Found " + node.getChild(i).get("type");
+                                addReport(Report.newError(
+                                        Stage.SEMANTIC,
+                                        NodeUtils.getLine(node),
+                                        NodeUtils.getColumn(node),
+                                        message,
+                                        null));
+                                break;
+                            }
+                        }else {
+                            if(node.getChild(i).get("type").equals(table.getParameters(nodeName).get(table.getParameters(nodeName).size()-1).getType().getName()) && node.getChild(i).get("isArray").equals("false")){
+                            }else {
+                                String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(nodeName).get(table.getParameters(nodeName).size()-1).getType().getName() + ". Found " + node.getChild(i).get("type");
+                                addReport(Report.newError(
+                                        Stage.SEMANTIC,
+                                        NodeUtils.getLine(node),
+                                        NodeUtils.getColumn(node),
+                                        message,
+                                        null));
+                                break;
+                            }
                         }
                     }
-                    else if((!node.getChild(i).get("type").equals(table.getParameters(node.get("name")).get(i-1).getType().getName())) && !(table.getParameters(node.get("name")).get(i-1).getType().getName()).equals(table.getSuper()) && node.getChild(i).get("type").equals(table.getClassName())){
+                } else {
+                    String message = "Wrong number of parameters";
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(node),
+                            NodeUtils.getColumn(node),
+                            message,
+                            null));
+                    return null;
+                }
+            } else {
+                String message = "Wrong number of parameters";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(node),
+                        NodeUtils.getColumn(node),
+                        message,
+                        null));
+                return null;
+            }
+        } else{
+            if(hasVarArg){
+                for(int i = 1; i < node.getNumChildren(); i++){
+                    if(i == node.getNumChildren()-1 && node.getChild(i).get("type").equals("int")){
+                        continue;
+                    }
+                    if(node.getChild(i).get("type").equals(table.getParameters(nodeName).get(i - 1).getType().getName()) && node.getChild(i).get("isArray").equals(String.valueOf(table.getParameters(nodeName).get(i - 1).getType().isArray()))){
+                    } else {
+                        String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(node.get("name")).get(i-1).getType().getName() + ". Found " + node.getChild(i).get("type");
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(node),
+                                NodeUtils.getColumn(node),
+                                message,
+                                null));
+                        break;
+                    }
+                }
+            }else {
+                for(int i = 1; i < node.getNumChildren(); i++){
+                    if(node.getChild(i).get("type").equals(table.getParameters(nodeName).get(i - 1).getType().getName()) && node.getChild(i).get("isArray").equals(String.valueOf(table.getParameters(nodeName).get(i - 1).getType().isArray()))){
+                    } else {
                         String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(node.get("name")).get(i-1).getType().getName() + ". Found " + node.getChild(i).get("type");
                         addReport(Report.newError(
                                 Stage.SEMANTIC,
@@ -274,32 +342,7 @@ public class IntLit extends AnalysisPosVisitor {
                     }
                 }
             }
-            else{
-                String message = "Wrong number of parameters";
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(node),
-                        NodeUtils.getColumn(node),
-                        message,
-                        null));}
-            return null;
-        }
-        else{
-            for(int i = 1; i < node.getNumChildren(); i++){
-                if(node.getChild(i).get("type").equals(table.getParameters(method.get()).get(i - 1).getType().getName()) && node.getChild(i).get("isArray").equals(String.valueOf(table.getParameters(method.get()).get(i - 1).getType().isArray()))){
-                } else {
-                    String message = "It doesnt match the parameter " + i + " in method " + node.get("name") + ". Expected " + table.getParameters(node.get("name")).get(i-1).getType().getName() + ". Found " + node.getChild(i).get("type");
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(node),
-                            NodeUtils.getColumn(node),
-                            message,
-                            null));
-                    break;
-                }
-            }
         }
         return null;
     }
-
 }
