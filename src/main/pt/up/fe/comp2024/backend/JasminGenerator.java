@@ -282,7 +282,8 @@ public class JasminGenerator {
 
 
         if(callInstruction.getInvocationType().toString().equals("invokevirtual")) {
-            code.append("invokevirtual ").append(className).append("/").append(callInstruction.getMethodName());
+            String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
+            code.append("invokevirtual ").append(className).append("/").append(literal);
 
             var params = generateParams((ArrayList<Element>) callInstruction.getArguments());
             var returnType = getReturnType(callInstruction.getReturnType().toString());
