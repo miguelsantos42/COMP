@@ -44,8 +44,8 @@ public class JasminGenerator {
         generators.put(Method.class, this::generateMethod);
         generators.put(AssignInstruction.class, this::generateAssign);
         generators.put(SingleOpInstruction.class, this::generateSingleOp);
-        generators.put(PutFieldInstruction.class, this::generatePutfield);
-        generators.put(GetFieldInstruction.class, this::generateGetfield);
+        generators.put(PutFieldInstruction.class, this::generatePutField);
+        generators.put(GetFieldInstruction.class, this::generateGetField);
         generators.put(CallInstruction.class, this::generateCall);
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
@@ -127,30 +127,9 @@ public class JasminGenerator {
 
         var methodName = method.getMethodName();
 
-        var params = new StringBuilder();
-        for (var param : method.getParams()) {
-            System.out.println("Param: " + param.getType());
-            switch (param.getType().toString()) {
-                case "INT32" -> params.append("I");
-                case "BOOLEAN" -> params.append("Z");
-                case "STRING" -> params.append("Ljava/lang/String;");
-                case "INT[]" -> params.append("[I");
-                case "BOOLEAN[]" -> params.append("[Z");
-                case "STRING[]" -> params.append("[Ljava/lang/String;");
-                default -> throw new NotImplementedException(param.getType());
-            }
-        }
+        var params = generateParams(method.getParams());
 
-        var returnType = switch (method.getReturnType().toString()) {
-            case "INT32" -> "I";
-            case "BOOLEAN" -> "Z";
-            case "STRING" -> "Ljava/lang/String;";
-            case "INT[]" -> "[I";
-            case "BOOLEAN[]" -> "[Z";
-            case "STRING[]" -> "[Ljava/lang/String;";
-            case "VOID" -> "V";
-            default -> throw new NotImplementedException(method.getReturnType());
-        };
+        var returnType = getReturnType(method.getReturnType().toString());
 
 
         code.append("\n.method ").append(modifier).append(methodName).append("(").append(params).append(")").append(returnType).append(NL);
@@ -185,28 +164,21 @@ public class JasminGenerator {
 
         // generate code for loading what's on the right
         System.out.println("RHS: " + generators.apply(assign.getRhs()));
-        if(assign.getRhs() instanceof CallInstruction) {
-            code.append("");
-        } else {
 
-        }
 
         code.append(generators.apply(assign.getRhs()));
         // store value in the stack in destination
         var lhs = assign.getDest();
 
-        if (!(lhs instanceof Operand)) {
+        if (!(lhs instanceof Operand operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
-
-        var operand = (Operand) lhs;
 
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         var type = switch (operand.getType().toString()) {
-            case "INT32" -> "istore_";
-            case "BOOLEAN" -> "istore_";
+            case "INT32", "BOOLEAN" -> "istore_";
             case "STRING" -> "Ljava/lang/String;";
             case "INT[]" -> "[I";
             case "BOOLEAN[]" -> "[Z";
@@ -230,7 +202,7 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload " + reg + NL;
+        return "iload_" + reg + NL;
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -252,7 +224,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateGetfield(GetFieldInstruction getFieldInstruction) {
+    private String generateGetField(GetFieldInstruction getFieldInstruction) {
         System.out.println("GetField: " + getFieldInstruction);
         var code = new StringBuilder();
 
@@ -260,25 +232,14 @@ public class JasminGenerator {
 
         code.append("aload_0").append(NL);
 
-
-        var type = switch (getFieldInstruction.getFieldType().toString()) {
-            case "INT32" -> "I";
-            case "BOOLEAN" -> "Z";
-            case "STRING" -> "Ljava/lang/String;";
-            case "INT[]" -> "[I";
-            case "BOOLEAN[]" -> "[Z";
-            case "STRING[]" -> "[Ljava/lang/String;";
-            default -> throw new NotImplementedException(getFieldInstruction.getFieldType());
-        };
+        var type = getFieldType(getFieldInstruction.getFieldType().toString());
 
         code.append("getfield ").append(className).append("/").append(getFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
 
-
         return code.toString();
-
     }
 
-    private String generatePutfield(PutFieldInstruction putFieldInstruction) {
+    private String generatePutField(PutFieldInstruction putFieldInstruction) {
         System.out.println("PutField: " + putFieldInstruction);
         var code = new StringBuilder();
 
@@ -293,15 +254,7 @@ public class JasminGenerator {
 
 
         System.out.println("Field Type: " + putFieldInstruction.getOperands().get(1).getType()); //might not be the best way, what the I after the putfield instruction refer to?
-        var type = switch (putFieldInstruction.getOperands().get(1).getType().toString()) {
-            case "INT32" -> "I";
-            case "BOOLEAN" -> "Z";
-            case "STRING" -> "Ljava/lang/String;";
-            case "INT[]" -> "[I";
-            case "BOOLEAN[]" -> "[Z";
-            case "STRING[]" -> "[Ljava/lang/String;";
-            default -> throw new NotImplementedException(putFieldInstruction.getFieldType());
-        };
+        var type = getFieldType(putFieldInstruction.getOperands().get(1).getType().toString());
 
         code.append("putfield ").append(className).append("/").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
 
@@ -318,12 +271,36 @@ public class JasminGenerator {
         code.append("new ").append(className).append(NL);
         code.append("dup").append(NL);
 
+
         //code.append(callInstruction.getOperands());
 
-        code.append("invokespecial ").append(className).append("/").append("<init>()V").append(NL);
-        return code.toString();
+        // detect wether its necessary a invokespecial or a invokevirtual
+        /*
+            invokespecial is used to call constructors (<init>()V) in the main and <init> methods.
+            invokevirtual is used to call the add method in the main method.
+         */
 
+
+        if(callInstruction.getInvocationType().toString().equals("invokevirtual")) {
+            code.append("invokevirtual ").append(className).append("/").append(callInstruction.getMethodName());
+
+            var params = generateParams((ArrayList<Element>) callInstruction.getArguments());
+            var returnType = getReturnType(callInstruction.getReturnType().toString());
+
+            code.append("(").append(params).append(")").append(returnType).append(NL);
+        }
+        else if (callInstruction.getInvocationType().toString().equals("invokespecial")
+                || callInstruction.getInvocationType().toString().equals("invokestatic")
+                || callInstruction.getInvocationType().toString().equals("invokeinterface")
+                || callInstruction.getInvocationType().toString().equals("NEW"))
+            code.append("invokespecial ").append(className).append("/").append("<init>()V").append(NL);
+        else
+            System.out.println("Error: Invocation type not found");
+
+
+        return code.toString();
     }
+
     private String generateReturn(ReturnInstruction returnInst) {
         var code = new StringBuilder();
 
@@ -341,6 +318,48 @@ public class JasminGenerator {
         }
 
         return code.toString();
+    }
+
+    private StringBuilder generateParams(ArrayList<Element> paramList) {
+        var params = new StringBuilder();
+        for (var param : paramList) {
+            System.out.println("Param: " + param.getType());
+            switch (param.getType().toString()) {
+                case "INT32" -> params.append("I");
+                case "BOOLEAN" -> params.append("Z");
+                case "STRING" -> params.append("Ljava/lang/String;");
+                case "INT[]" -> params.append("[I");
+                case "BOOLEAN[]" -> params.append("[Z");
+                case "STRING[]" -> params.append("[Ljava/lang/String;");
+                default -> throw new NotImplementedException(param.getType());
+            }
+        }
+        return params;
+    }
+
+    private String getReturnType(String returnType) {
+        return switch (returnType) {
+            case "INT32" -> "I";
+            case "BOOLEAN" -> "Z";
+            case "STRING" -> "Ljava/lang/String;";
+            case "INT[]" -> "[I";
+            case "BOOLEAN[]" -> "[Z";
+            case "STRING[]" -> "[Ljava/lang/String;";
+            case "VOID" -> "V";
+            default -> throw new NotImplementedException(returnType);
+        };
+    }
+
+    private String getFieldType(String fieldInstructionType) {
+        return switch (fieldInstructionType) {
+            case "INT32" -> "I";
+            case "BOOLEAN" -> "Z";
+            case "STRING" -> "Ljava/lang/String;";
+            case "INT[]" -> "[I";
+            case "BOOLEAN[]" -> "[Z";
+            case "STRING[]" -> "[Ljava/lang/String;";
+            default -> throw new NotImplementedException(fieldInstructionType);
+        };
     }
 
 }
