@@ -159,14 +159,14 @@ public class JasminGenerator {
 
 
     private String generateAssign(AssignInstruction assign) {
-        System.out.println("Assign: " + assign);
+        System.out.println("\n\nAssign: " + assign);
         var code = new StringBuilder();
 
         // generate code for loading what's on the right
-        System.out.println("RHS: " + generators.apply(assign.getRhs()));
+        var rhs = generators.apply(assign.getRhs());
+        System.out.println("RHS: " + rhs);
 
-
-        code.append(generators.apply(assign.getRhs()));
+        code.append(rhs);
         // store value in the stack in destination
         var lhs = assign.getDest();
 
@@ -184,17 +184,25 @@ public class JasminGenerator {
         System.out.println("lhs: " + lhs);
         System.out.println("Register: " + reg);
 
-        var type = switch (operand.getType().toString()) {
-            case "INT32", "BOOLEAN" -> "istore_";
-            case "STRING" -> "Ljava/lang/String;";
-            case "INT[]" -> "[I";
-            case "BOOLEAN[]" -> "[Z";
-            case "STRING[]" -> "[Ljava/lang/String;";
-            default -> "astore_";
-        };
+        if( (assign.getRhs().getInstType().toString().equals("NOPER")
+            && !assign.getTypeOfAssign().getTypeOfElement().toString().equals("OBJECTREF") )
+            || (!assign.getRhs().getInstType().toString().equals("NOPER"))) {
 
-        code.append(type).append(reg).append(NL);
+            var type = switch (operand.getType().toString()) {
+                case "INT32", "BOOLEAN" -> "istore_";
+                case "STRING" -> "Ljava/lang/String;";
+                case "INT[]" -> "[I";
+                case "BOOLEAN[]" -> "[Z";
+                case "STRING[]" -> "[Ljava/lang/String;";
+                default -> "astore_";
+            };
 
+            /*if (operand.getType().getTypeOfElement().toString().equals("OBJECTREF")) {
+                code.append("astore").append(NL);
+            } else {*/
+                code.append(type).append(reg).append(NL);
+            //}
+        }
         return code.toString();
     }
 
@@ -208,8 +216,30 @@ public class JasminGenerator {
 
     private String generateOperand(Operand operand) {
         // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload_" + reg + NL;
+        if(operand.getName().length()>=3) {
+            var checktemp = operand.getName().substring(0, 3);
+            if (checktemp.equals("tmp")) {
+                return "";
+            }
+        }
+            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
+            var type = switch (operand.getType().toString()) {
+                case "INT32", "BOOLEAN" -> "iload_";
+                case "STRING" -> "Ljava/lang/String;";
+                case "INT[]" -> "[I";
+                case "BOOLEAN[]" -> "[Z";
+                case "STRING[]" -> "[Ljava/lang/String;";
+                default -> "aload_";
+            };
+
+        /*if(operand.getType().getTypeOfElement().toString().equals("OBJECTREF")){
+            return "aload" + NL;
+        }*/
+
+            return type + reg + NL;
+        //}
+        //return "";
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -276,9 +306,8 @@ public class JasminGenerator {
         var className = ollirResult.getOllirClass().getClassName();
 
         if(callInstruction.getInvocationType().toString().equals("NEW")){
-
-        code.append("new ").append(className).append(NL);
-        code.append("dup").append(NL);
+            code.append("new ").append(className).append(NL);
+            code.append("dup").append(NL);
         }
 
         //code.append(callInstruction.getOperands());
@@ -292,9 +321,26 @@ public class JasminGenerator {
 
         if(callInstruction.getInvocationType().toString().equals("invokevirtual")) {
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
-            code.append("invokevirtual ").append(className).append("/").append(literal);
 
             var params = generateParams((ArrayList<Element>) callInstruction.getArguments());
+
+            for(var param : callInstruction.getArguments()){
+                String paramName = param.toString().substring(param.toString().indexOf(' ') + 1, param.toString().indexOf('.'));
+                var reg = currentMethod.getVarTable().get(paramName).getVirtualReg();
+
+                var type = switch (param.getType().toString()) {
+                    case "INT32", "BOOLEAN" -> "iload_";
+                    case "STRING" -> "Ljava/lang/String;";
+                    case "INT[]" -> "[I";
+                    case "BOOLEAN[]" -> "[Z";
+                    case "STRING[]" -> "[Ljava/lang/String;";
+                    default -> "aload_";
+                };
+                code.append(type).append(reg).append(NL);
+            }
+
+            code.append("invokevirtual ").append(className).append("/").append(literal);
+
             var returnType = getReturnType(callInstruction.getReturnType().toString());
 
             code.append("(").append(params).append(")").append(returnType).append(NL);
