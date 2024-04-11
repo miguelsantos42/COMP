@@ -93,7 +93,6 @@ public class JasminGenerator {
 
         // generate code for all other methods
         for (var method : ollirResult.getOllirClass().getMethods()) {
-
             // Ignore constructor, since there is always one constructor
             // that receives no arguments, and has been already added
             // previously
@@ -117,7 +116,7 @@ public class JasminGenerator {
 
         // calculate modifier
 
-        System.out.println("Method: " + method.getMethodAccessModifier());
+        System.out.println("Method access modifier: " + method.getMethodAccessModifier());
         var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
                 method.getMethodAccessModifier().name().toLowerCase() + " " :
                 "";
@@ -147,6 +146,7 @@ public class JasminGenerator {
 
                 code.append(instCode);
             }
+
         }
 
         code.append(".end method\n");
@@ -176,6 +176,13 @@ public class JasminGenerator {
 
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
+        for(var var : currentMethod.getVarTable().values()){
+            System.out.println("Var: " + var.getVarType() + " " + var.getVirtualReg() + " " + var.getScope() + " " );
+        }
+
+        System.out.println("lhs: " + lhs);
+        System.out.println("Register: " + reg);
 
         var type = switch (operand.getType().toString()) {
             case "INT32", "BOOLEAN" -> "istore_";
@@ -263,14 +270,16 @@ public class JasminGenerator {
 
 
     private String generateCall(CallInstruction callInstruction) {
-        System.out.println("Call: " + callInstruction);
+            System.out.println("Call: " + callInstruction);
         var code = new StringBuilder();
 
         var className = ollirResult.getOllirClass().getClassName();
 
+        if(callInstruction.getInvocationType().toString().equals("NEW")){
+
         code.append("new ").append(className).append(NL);
         code.append("dup").append(NL);
-
+        }
 
         //code.append(callInstruction.getOperands());
 

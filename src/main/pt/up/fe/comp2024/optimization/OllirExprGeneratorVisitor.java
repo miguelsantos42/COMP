@@ -8,6 +8,7 @@ import pt.up.fe.comp.jmm.ollir.OllirUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.lang.invoke.StringConcatFactory;
+import java.sql.SQLOutput;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
 
@@ -21,6 +22,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private final String END_STMT = ";\n";
 
     private final SymbolTable table;
+
+    private int preventDefault = 0;
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
         this.table = table;
@@ -41,7 +44,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         System.out.println("visiting method class call expr");
         StringBuilder computation = new StringBuilder();
         var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
-        var tmp = OptUtils.getTemp();
+
         var class_name = jmmNode.getAncestor("ClassDecl").get().get("name");
         var is_this = "";
         var param = "";
@@ -69,15 +72,23 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         System.out.println("param: " + param);
         System.out.println("class_name: " + class_name);
 
-
-
-
-
-        computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
-                .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
-
         StringBuilder code = new StringBuilder();
-        code.append(tmp).append(type);
+
+        if(preventDefault == 0 ) {
+            var tmp = OptUtils.getTemp(); //1st //3rd //5th
+            System.out.println("aqui: " + tmp);
+
+
+            computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
+                    .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
+
+            System.out.println("computation2: " + computation);
+
+            code.append(tmp).append(type);
+            this.preventDefault += 1;
+        }else{
+            preventDefault -= 1;
+        }
 
 
         return new OllirExprResult(code.toString(), computation);
@@ -104,6 +115,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
         System.out.println("visiting bin expr");
 
+
         var lhs = visit(node.getJmmChild(0));
         var rhs = visit(node.getJmmChild(1));
 
@@ -116,7 +128,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         // code to compute self
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
-        String code = OptUtils.getTemp() + resOllirType;
+        String code = OptUtils.getTemp() + resOllirType;//2nd
+        System.out.println("ffff: " + code);
 
 
         computation.append(code).append(SPACE)
@@ -141,7 +154,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         for(var fields : table.getFields()) {
             if(fields.getName().equals(node.get("name"))) {
                 isField = true;
-                temp = OptUtils.getTemp();
                 code.append(temp).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
                 code.append(ASSIGN).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
                 code.append("getfield(this, ").append(fields.getName()).append(OptUtils.toOllirType(fields.getType())).append(")"); //this might be something else
@@ -159,9 +171,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             real_code = id + ollirType;
         }
         else {
-            var id = temp;
+            temp  = OptUtils.getTemp();
             real_code = temp + ollirType;
         }
+
 
         return new OllirExprResult(real_code,code);
     }
@@ -174,7 +187,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         StringBuilder computation = new StringBuilder();
         var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
         var name = jmmNode.get("name");
-        var tmp = OptUtils.getTemp();
+        var tmp = OptUtils.getTemp(); //4th
+        System.out.println("aqui: " + tmp);
 
         computation.append(tmp).append(type).append(SPACE)
                 .append(ASSIGN).append(type).append(SPACE)
