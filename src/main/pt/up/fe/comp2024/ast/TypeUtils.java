@@ -50,15 +50,11 @@ public class TypeUtils {
 
 
     private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
-        var kind = Kind.fromString(varRefExpr.getKind());
+        var kind = varRefExpr.get("type");
 
         return switch (kind) {
-            case BINARY_EXPR -> getBinExprType(varRefExpr);
-            case VAR_REF_EXPR -> getVarExprType(varRefExpr, table);
-            case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
-            case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
-            case NEW_OBJECT_EXPR -> new Type(varRefExpr.get("name"), false);
-            case METHOD_CLASS_CALL_EXPR -> new Type(varRefExpr.get("type"), false);
+            case "int" -> new Type(INT_TYPE_NAME, false);
+            case "boolean" -> new Type(BOOLEAN_TYPE_NAME, false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
     }
