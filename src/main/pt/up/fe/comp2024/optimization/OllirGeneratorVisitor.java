@@ -55,7 +55,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
 
-    
+
 
     private String visitMethodClassCallExpr(JmmNode jmmNode, Void unused) {
         System.out.println("visiting method call expr");
@@ -87,7 +87,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitImportDeclaration(JmmNode jmmNode, Void unused) {
         System.out.println("visiting import declaration");
 
-        return IMPORT + jmmNode.get("ID") + END_STMT;
+        StringBuilder finalImport = new StringBuilder(IMPORT);
+        for(var name : jmmNode.get("name").substring(1, jmmNode.get("name").length() - 1).split(",")) {
+            finalImport.append(name.replace(' ', '.'));
+        }
+
+        return finalImport + END_STMT;
     }
 
     private String visitMainMethodDecl(JmmNode jmmNode, Void unused) {
