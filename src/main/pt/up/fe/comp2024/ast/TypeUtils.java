@@ -37,8 +37,6 @@ public class TypeUtils {
     }
 
     private static Type getBinExprType(JmmNode binaryExpr) {
-        // TODO: Simple implementation that needs to be expanded
-
         String operator = binaryExpr.get("op");
 
         return switch (operator) {
