@@ -55,12 +55,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
 
-
-
-
-
-
-
+    
 
     private String visitMethodClassCallExpr(JmmNode jmmNode, Void unused) {
         System.out.println("visiting method call expr");
