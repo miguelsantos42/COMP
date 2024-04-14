@@ -6,6 +6,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
@@ -22,6 +23,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private final SymbolTable table;
 
     private int preventDefault = 0;
+
+    private HashMap<JmmNode, OllirExprResult> computedResults = new HashMap<>();
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
         this.table = table;
@@ -80,9 +83,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         StringBuilder code = new StringBuilder();
 
-        if(preventDefault == 0 ) {
+        if(this.preventDefault == 0 ) {
             var tmp = OptUtils.getTemp();
-
 
             computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
                     .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
@@ -91,7 +93,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
             code.append(tmp).append(type);
             this.preventDefault += 1;
-        } else preventDefault -= 1;
+        }
+        else {
+            this.preventDefault -= 1;
+        }
 
         return new OllirExprResult(code.toString(), computation);
     }
@@ -117,6 +122,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
         System.out.println("visiting bin expr");
 
+        // Check if the computation for the current node has already been performed
+        if (computedResults.containsKey(node)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(node);
+        }
+
         var lhs = visit(node.getJmmChild(0));
         var rhs = visit(node.getJmmChild(1));
 
@@ -140,8 +151,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
                 .append(rhs.getCode()).append(END_STMT);
 
+        // Store the result of the computation in the HashMap
+        OllirExprResult result = new OllirExprResult(code, computation);
+        computedResults.put(node, result);
 
-        return new OllirExprResult(code, computation);
+        return result;
     }
 
 
