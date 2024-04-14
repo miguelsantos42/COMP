@@ -162,36 +162,23 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
         System.out.println("visiting var ref");
         StringBuilder code = new StringBuilder();
-        var isField = false;
         var temp = "";
-
-        for(var fields : table.getFields()) {
-            if(fields.getName().equals(node.get("name"))) {
-                temp = OptUtils.getTemp();
-                isField = true;
-                code.append(temp).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
-                code.append(ASSIGN).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
-                code.append("getfield(this, ").append(fields.getName()).append(OptUtils.toOllirType(fields.getType())).append(")"); //this might be something else
-                code.append(OptUtils.toOllirType(fields.getType())).append(END_STMT);
-                break;
-            }
-        }
-
         var isArray = Objects.equals(node.get("isArray"), "true");
         var type = new Type(node.get("type"), isArray);
         String ollirType = OptUtils.toOllirType(type);
-        String real_code;
 
-        if(!isField) {
-            var id = node.get("name");
-            real_code = id + ollirType;
+        for(var field : table.getFields()) {
+            if(field.getName().equals(node.get("name"))) {
+                temp = OptUtils.getTemp();
+                code.append(temp).append(OptUtils.toOllirType(field.getType())).append(SPACE);
+                code.append(ASSIGN).append(OptUtils.toOllirType(field.getType())).append(SPACE);
+                code.append("getfield(this, ").append(field.getName()).append(OptUtils.toOllirType(field.getType())).append(")");
+                code.append(OptUtils.toOllirType(field.getType())).append(END_STMT);
+                return new OllirExprResult(temp + ollirType, code);
+            }
         }
-        else {
-            real_code = temp + ollirType;
-        }
 
-
-        return new OllirExprResult(real_code, code);
+        return new OllirExprResult(node.get("name") + ollirType, code);
     }
 
 
