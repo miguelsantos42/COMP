@@ -48,16 +48,24 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         StringBuilder param = new StringBuilder();
         for(var child : jmmNode.getChildren()) {
             if(child.getKind().equals("VarRefExpr")) {
-
-
                 if(!child.equals(jmmNode.getChild(0))){
                     param.append(", ");
                     param.append(visit(child).getCode());
                 }
             }
+            else if(child.getKind().equals("BinaryExpr")) {
+                if(!child.equals(jmmNode.getChild(0))){
+                    var visit = visit(child);
+                    param.append(", ");
+                    param.append(visit.getCode());
+                    computation.append(visit.getComputation());
+                }
+            }
+
             if(child.getKind().equals("ThisExpr")) {
                 is_this = "this.";
-            }else {
+            }
+            else {
                 is_this = jmmNode.getChild(0).get("name") + ".";
             }
         }
@@ -83,10 +91,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
             code.append(tmp).append(type);
             this.preventDefault += 1;
-        }else{
-            preventDefault -= 1;
-        }
-
+        } else preventDefault -= 1;
 
         return new OllirExprResult(code.toString(), computation);
     }
