@@ -26,6 +26,7 @@ public class IntLit extends AnalysisPosVisitor {
         addVisit("ArrayExpr", this::visitArrayExpr);
         addVisit("ArrayAccessExpr", this::visitArrayAccessExpr);
         addVisit("ArrayLengthExpr", this::visitArrayLengthExpr);
+        addVisit("ArrayAssignStmt", this::visitArrayAssignStmt);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit("NewObjectExpr", this::visitNewObjectExpr);
         addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
@@ -164,6 +165,37 @@ public class IntLit extends AnalysisPosVisitor {
                     null));
         }
 
+        return null;
+    }
+
+    private Void visitArrayAssignStmt(JmmNode node, SymbolTable table){
+        if (!node.get("isArray").equals("true")){
+            String message = "Variable must be of type array to be accessed";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        if(!node.getChild(0).get("type").equals("int") || node.getChild(0).get("isArray").equals("true")){
+            String message = "Array assignment must be of type int[]";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        if(!node.getChild(1).get("type").equals("int") || node.getChild(1).get("isArray").equals("true")){
+            String message = "Array assignment must be of type int";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
         return null;
     }
 

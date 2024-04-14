@@ -10,7 +10,9 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -19,10 +21,11 @@ import java.util.Optional;
  */
 public class UndeclaredMethod extends AnalysisVisitor {
 
+    Set<String> methods = new HashSet<>();
+
     @Override
     public void buildVisitor() {
         addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
-        //addVisit("MethodCallExpr", this::visitMethodClassCallExpr);
         addVisit("FunctionParameters", this::checkFunctionParameters);
         addVisit(Kind.METHOD_DECL,this::checkMethodtype);
     }
@@ -94,6 +97,21 @@ public class UndeclaredMethod extends AnalysisVisitor {
     }
 
     private Void checkMethodtype(JmmNode node, SymbolTable table){
+        if(this.methods.contains(node.get("name"))){
+            String message = "Method already declared!";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null)
+            );
+            return null;
+        }
+        this.methods.add(node.get("name"));
+        if(node.getChild(0).getKind().equals("MethodCodeBlockWithoutReturn")){
+            return null;
+        }
         if(node.getChild(0).get("name").equals("int...")){
             String message = "Method can not be declared with vararg type!";
             addReport(Report.newError(

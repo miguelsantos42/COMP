@@ -97,7 +97,7 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
         this.methodParams.put(methodName, new ArrayList<>());
 
         for (JmmNode child : node.getChildren()) {
-            if(Objects.equals(child.getKind(), "FunctionParameters")){
+            if(Objects.equals(child.getKind(), "FunctionParameters")) {
                 List<Symbol> params = new ArrayList<>();
 
                 String parameters = child.get("name");
@@ -116,7 +116,12 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
                 this.methodParams.put(methodName, params);
             }
-            else if(Objects.equals(child.getKind(), "MethodCodeBlock") || Objects.equals(child.getKind(), "MethodCodeBlockWithoutReturn")){
+            else if(Objects.equals(child.getKind(), "MethodCodeBlock")){
+                visit(child, s);
+            } else if (Objects.equals(child.getKind(), "MethodCodeBlockWithoutReturn")){
+                boolean isArray = false;
+                String returnType = "void";
+                this.methodReturnTypes.put(methodName, new Type(returnType, isArray));
                 visit(child, s);
             }
             else {
