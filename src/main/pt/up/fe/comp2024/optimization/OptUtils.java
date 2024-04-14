@@ -34,10 +34,8 @@ public class OptUtils {
         return "." + switch (typeName) {
             case "int" -> "i32";
             case "boolean" -> "bool";
-            case "int[]" -> "array.i32";
-            case "boolean[]" -> "array.bool";
-            case "void" -> ".V";
-            case "string" -> "string";
+            case "int[]", "int..." -> "array.i32";
+            case "String" -> "string";
             default -> typeName;
         };
     }
