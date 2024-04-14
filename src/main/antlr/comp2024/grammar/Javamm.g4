@@ -156,10 +156,8 @@ expr
     | EXCLAMATION expr #NegationExpr // !a
     | NEW INT LBRACKET expr RBRACKET #NewArrayExpr // new int[a]
     | NEW name=ID LPAREN RPAREN #NewObjectExpr // new A()
-    | expr op= MUL expr #BinaryExpr // a * b
-    | expr op= DIV expr #BinaryExpr // a / b
-    | expr op= ADD expr #BinaryExpr // a + b
-    | expr op= SUB expr #BinaryExpr // a - b
+    | expr op=(MUL | DIV) expr #BinaryExpr // a * b or a / b
+    | expr op=(ADD | SUB) expr #BinaryExpr // a + b or a - b
     | expr op= LT expr #LogicalExpr // a < b
     | expr op= AND expr #LogicalExpr // a && b
     | LBRACKET ( expr (COMMA expr)* )? RBRACKET #ArrayExpr // [a, b, c]
