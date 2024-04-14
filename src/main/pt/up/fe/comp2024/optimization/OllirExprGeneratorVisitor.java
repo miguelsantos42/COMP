@@ -167,11 +167,13 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         for(var fields : table.getFields()) {
             if(fields.getName().equals(node.get("name"))) {
+                temp = OptUtils.getTemp();
                 isField = true;
                 code.append(temp).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
                 code.append(ASSIGN).append(OptUtils.toOllirType(fields.getType())).append(SPACE);
                 code.append("getfield(this, ").append(fields.getName()).append(OptUtils.toOllirType(fields.getType())).append(")"); //this might be something else
                 code.append(OptUtils.toOllirType(fields.getType())).append(END_STMT);
+                break;
             }
         }
 
@@ -185,12 +187,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             real_code = id + ollirType;
         }
         else {
-            temp  = OptUtils.getTemp();
             real_code = temp + ollirType;
         }
 
 
-        return new OllirExprResult(real_code,code);
+        return new OllirExprResult(real_code, code);
     }
 
 

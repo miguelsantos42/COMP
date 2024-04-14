@@ -182,6 +182,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append(typeString);
             code.append(SPACE);
 
+
             code.append(rhs.getCode());
 
             code.append(END_STMT);
