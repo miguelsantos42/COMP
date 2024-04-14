@@ -62,13 +62,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
-
         code.append("invokestatic(");
         code.append(jmmNode.getJmmChild(0).get("name"));
         code.append(", ");
         code.append("\"");
         code.append(jmmNode.get("name"));
         code.append("\"");
+
         if(jmmNode.getNumChildren() > 1) {
             code.append(", ");
             code.append(jmmNode.getChild(1).get("name"));
@@ -330,7 +330,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String buildConstructor() {
 
         return ".construct " + table.getClassName() + "().V {\n" +
-                "invokespecial(this, \"\").V;\n" +
+                "invokespecial(this, \"<init>\").V;\n" +
                 "}\n";
     }
 
