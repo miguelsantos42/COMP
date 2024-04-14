@@ -396,7 +396,7 @@ public class JasminGenerator {
                 case "INT32" -> params.append("I");
                 case "BOOLEAN" -> params.append("Z");
                 case "STRING" -> params.append("Ljava/lang/String;");
-                case "INT[]" -> params.append("[I");
+                case "INT32[]" -> params.append("[I");
                 case "BOOLEAN[]" -> params.append("[Z");
                 case "STRING[]" -> params.append("[Ljava/lang/String;");
                 default -> throw new NotImplementedException(param.getType());
