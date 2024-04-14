@@ -73,8 +73,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         StringBuilder code = new StringBuilder();
 
         if(preventDefault == 0 ) {
-            var tmp = OptUtils.getTemp(); //1st //3rd //5th
-            System.out.println("aqui: " + tmp);
+            var tmp = OptUtils.getTemp();
 
 
             computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
@@ -113,7 +112,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
         System.out.println("visiting bin expr");
 
-
         var lhs = visit(node.getJmmChild(0));
         var rhs = visit(node.getJmmChild(1));
 
@@ -126,8 +124,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         // code to compute self
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
-        String code = OptUtils.getTemp() + resOllirType;//2nd
-        System.out.println("ffff: " + code);
+        String code = OptUtils.getTemp() + resOllirType;
 
 
         computation.append(code).append(SPACE)
@@ -185,8 +182,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         StringBuilder computation = new StringBuilder();
         var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
         var name = jmmNode.get("name");
-        var tmp = OptUtils.getTemp(); //4th
-        System.out.println("aqui: " + tmp);
+        var tmp = OptUtils.getTemp();
 
         computation.append(tmp).append(type).append(SPACE)
                 .append(ASSIGN).append(type).append(SPACE)
