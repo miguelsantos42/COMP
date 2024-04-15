@@ -57,32 +57,29 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         var child = jmmNode.getJmmChild(0);
 
-        if(Objects.equals(child.get("type"), child.get("name"))){ // import call
-            code.append("invokestatic(").append(child.get("type")).append(", ")
-                .append("\"").append(jmmNode.get("name")).append("\"");
-
-            if(jmmNode.getNumChildren() > 1) {
-                code.append(", ").append(jmmNode.getChild(1).get("name"))
-                    .append(OptUtils.toOllirType(TypeUtils.getExprType(jmmNode.getJmmChild(1), table)));
+        StringBuilder params = new StringBuilder();
+        // params
+        if(jmmNode.getNumChildren() > 1) {
+            for (int i = 1; i < jmmNode.getNumChildren(); i++){
+                var expr = exprVisitor.visit(jmmNode.getJmmChild(i));
+                code.append(expr.getComputation());
+                params.append(", ").append(expr.getCode());
             }
+        }
 
-            code.append(").V").append(END_STMT);
+        String invokeType;
+        if(Objects.equals(child.get("type"), child.get("name"))){ // import call
+            code.append("invokestatic(").append(child.get("type"));
         }
         else { // class call
-            var call_name = child.get("name");
             var class_name = OptUtils.toOllirType(new Type(child.get("type"), false));
-            var name = jmmNode.get("name");
-
-            code.append("invokevirtual(").append(call_name).append(class_name).append(", ")
-                .append('"').append(name).append('"');
-
-            if(jmmNode.getNumChildren() > 1) {
-                var expr = exprVisitor.visit(jmmNode.getJmmChild(1));
-                code.append(", ").append(expr.getCode());
-            }
-
-            code.append(").V").append(END_STMT);
+            code.append("invokevirtual(").append(child.get("name")).append(class_name);
         }
+
+        var name = jmmNode.get("name");
+
+        code.append(", ").append('"').append(name).append('"')
+            .append(params).append(").V").append(END_STMT);
 
         System.out.println("code: " + code);
 
@@ -230,22 +227,28 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // name
         code.append(node.get("name"));
-        var afterParam = 1;
+        var afterParam = 0;
 
 
         // type
-        String retType;
-        if(node.getJmmChild(0).getKind().contains("FunctionParameters")){
-            retType = ".V";
-            code.append("(").append(visit(node.getJmmChild(0))).append(")");
-        }
-        else if (node.getJmmChild(1).getKind().contains("FunctionParameters")){
-            retType = OptUtils.toOllirType(node.getJmmChild(0));
-            afterParam = 2;
-            code.append("(").append(visit(node.getJmmChild(1))).append(")");
+        String retType = "";
+        if (node.getNumChildren() >= 2) {
+            if (node.getJmmChild(0).getKind().contains("FunctionParameters")) {
+                retType = ".V";
+                afterParam = 1;
+                code.append("(").append(visit(node.getJmmChild(0))).append(")");
+            } else if (node.getJmmChild(1).getKind().contains("FunctionParameters")) {
+                retType = OptUtils.toOllirType(node.getJmmChild(0));
+                afterParam = 2;
+                code.append("(").append(visit(node.getJmmChild(1))).append(")");
+            }
+            else {
+                retType = OptUtils.toOllirType(node.getJmmChild(0));;
+                code.append("()");
+            }
         }
         else {
-            retType = OptUtils.toOllirType(node.getJmmChild(0));
+            retType = ".V";
             code.append("()");
         }
 
