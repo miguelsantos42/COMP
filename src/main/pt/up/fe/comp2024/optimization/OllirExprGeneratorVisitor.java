@@ -105,7 +105,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         System.out.println("visiting boolean");
         var boolType = new Type("boolean", false);
         String ollirBoolType = OptUtils.toOllirType(boolType);
-        String code = jmmNode.get("name") + ollirBoolType;
+        var value = Objects.equals(jmmNode.get("name"), "true") ? "1" : "0";
+        String code = value + ollirBoolType;
         return new OllirExprResult(code);
     }
 
