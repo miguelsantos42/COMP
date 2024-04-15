@@ -157,6 +157,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         var isField_lhs = false;
 
+        code.append(rhs.getComputation());
+
         for(var f : table.getFields()) {
             if(f.getName().equals(node.get("name"))) {
                 isField_lhs = true;
@@ -165,7 +167,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         }
 
         if(!isField_lhs){// code to compute the children
-            code.append(rhs.getComputation());
             System.out.println("rhs computations: " + rhs.getComputation());
 
             // code to compute self

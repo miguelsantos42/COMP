@@ -26,7 +26,7 @@ public class TypeUtils {
         var kind = Kind.fromString(expr.getKind());
 
         return switch (kind) {
-            case BINARY_EXPR -> getBinExprType(expr);
+            case BINARY_EXPR, LOGICAL_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
@@ -41,6 +41,7 @@ public class TypeUtils {
 
         return switch (operator) {
             case "+", "*", "/", "-" -> new Type(INT_TYPE_NAME, false);
+            case "&&", "<" -> new Type(BOOLEAN_TYPE_NAME, false);
             default ->
                     throw new RuntimeException("Unknown operator '" + operator + "' of expression '" + binaryExpr + "'");
         };

@@ -34,6 +34,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     protected void buildVisitor() {
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
+        addVisit(LOGICAL_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(BOOLEAN_LITERAL, this::visitBoolean);
         addVisit(NEW_OBJECT_EXPR, this::visitNewObjectExpr);
@@ -56,7 +57,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                     param.append(visit(child).getCode());
                 }
             }
-            else if(child.getKind().equals("BinaryExpr")) {
+            else if(child.getKind().equals("BinaryExpr") || child.getKind().equals("LogicalExpr")) {
                 if(!child.equals(jmmNode.getChild(0))){
                     var visit = visit(child);
                     param.append(", ");
@@ -161,6 +162,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
+        // Check if the computation for the current node has already been performed
+        if (computedResults.containsKey(node)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(node);
+        }
+
         System.out.println("visiting var ref");
         StringBuilder code = new StringBuilder();
         var temp = "";
@@ -175,11 +182,17 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 code.append(ASSIGN).append(OptUtils.toOllirType(field.getType())).append(SPACE);
                 code.append("getfield(this, ").append(field.getName()).append(OptUtils.toOllirType(field.getType())).append(")");
                 code.append(OptUtils.toOllirType(field.getType())).append(END_STMT);
-                return new OllirExprResult(temp + ollirType, code);
+                OllirExprResult result = new OllirExprResult(temp + ollirType, code);
+                computedResults.put(node, result);
+                return result;
             }
         }
 
-        return new OllirExprResult(node.get("name") + ollirType, code);
+        // Store the result of the computation in the HashMap
+        OllirExprResult result = new OllirExprResult(node.get("name") + ollirType, code);
+        computedResults.put(node, result);
+
+        return result;
     }
 
 

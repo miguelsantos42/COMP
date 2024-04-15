@@ -26,13 +26,14 @@ public enum Kind {
     ASSIGN_STMT,
     RETURN_STMT,
     BINARY_EXPR,
+    LOGICAL_EXPR,
     INTEGER_LITERAL,
     BOOLEAN_LITERAL,
     VAR_REF_EXPR;
 
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, BOOLEAN_LITERAL, VAR_REF_EXPR, NEW_OBJECT_EXPR);
+    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, LOGICAL_EXPR, INTEGER_LITERAL, BOOLEAN_LITERAL, VAR_REF_EXPR, NEW_OBJECT_EXPR);
 
     private final String name;
 
