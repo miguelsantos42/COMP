@@ -125,6 +125,8 @@ public class UndeclaredVariable extends AnalysisVisitor {
                 message,
                 null)
         );
+        varRefExpr.put("type", "null");
+        varRefExpr.put("isArray", "null");
         return null;
     }
     private Void visitVarDecl(JmmNode node, SymbolTable table){

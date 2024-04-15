@@ -30,6 +30,7 @@ public class IntLit extends AnalysisPosVisitor {
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         addVisit("NewObjectExpr", this::visitNewObjectExpr);
         addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
+        addVisit("NewArrayExpr", this::visitNewArrayExpr);
     }
 
     private Void visitBoolLit(JmmNode node, SymbolTable table){
@@ -222,6 +223,21 @@ public class IntLit extends AnalysisPosVisitor {
                     message,
                     null));
         }
+        return null;
+    }
+
+    private Void visitNewArrayExpr(JmmNode node, SymbolTable table){
+        if(!node.getChild(0).get("type").equals("int") || node.getChild(0).get("isArray").equals("true")){
+            String message = "Array size must be of type int";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null));
+        }
+        node.put("type", "int");
+        node.put("isArray", "true");
         return null;
     }
 
