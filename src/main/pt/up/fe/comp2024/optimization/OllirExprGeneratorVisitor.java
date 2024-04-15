@@ -43,6 +43,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     }
 
     private OllirExprResult visitMethodClassCallExpr(JmmNode jmmNode, Void unused) {
+        // Check if the computation for the current node has already been performed
+        if (computedResults.containsKey(jmmNode)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(jmmNode);
+        }
         System.out.println("visiting method class call expr");
         StringBuilder computation = new StringBuilder();
         var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
@@ -58,6 +63,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 }
             }
             else if(child.getKind().equals("BinaryExpr") || child.getKind().equals("LogicalExpr")) {
+                if(!child.equals(jmmNode.getChild(0))){
+                    var visit = visit(child);
+                    param.append(", ");
+                    param.append(visit.getCode());
+                    computation.append(visit.getComputation());
+                }
+            }
+            else if(child.getKind().equals("MethodClassCallExpr")){
                 if(!child.equals(jmmNode.getChild(0))){
                     var visit = visit(child);
                     param.append(", ");
@@ -84,22 +97,21 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         StringBuilder code = new StringBuilder();
 
-        if(this.preventDefault == 0 ) {
-            var tmp = OptUtils.getTemp();
+        var tmp = OptUtils.getTemp();
 
-            computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
-                    .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
+        computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
+                .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
 
-            System.out.println("computation2: " + computation);
+        System.out.println("computation2: " + computation);
 
-            code.append(tmp).append(type);
-            this.preventDefault += 1;
-        }
-        else {
-            this.preventDefault -= 1;
-        }
+        code.append(tmp).append(type);
 
-        return new OllirExprResult(code.toString(), computation);
+
+        // Store the result of the computation in the HashMap
+        OllirExprResult result = new OllirExprResult(code.toString(), computation);
+        computedResults.put(jmmNode, result);
+
+        return result;
     }
 
     private OllirExprResult visitBoolean(JmmNode jmmNode, Void unused) {
