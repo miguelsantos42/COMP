@@ -209,10 +209,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
      * @return
      */
     private OllirExprResult defaultVisit(JmmNode node, Void unused) {
-
-        for (var child : node.getChildren()) {
+        for (var child : node.getChildren())
             visit(child);
-        }
 
         return OllirExprResult.EMPTY;
     }
