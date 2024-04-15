@@ -58,7 +58,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var child = jmmNode.getJmmChild(0);
 
         if(Objects.equals(child.get("type"), child.get("name"))){ // import call
-            code.append("invokestatic(").append(table.getClassName()).append(", ")
+            code.append("invokestatic(").append(child.get("type")).append(", ")
                 .append("\"").append(jmmNode.get("name")).append("\"");
 
             if(jmmNode.getNumChildren() > 1) {
