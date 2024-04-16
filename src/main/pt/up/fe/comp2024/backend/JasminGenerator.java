@@ -8,6 +8,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
+import java.lang.invoke.StringConcatFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,20 +78,23 @@ public class JasminGenerator {
         var className = ollirResult.getOllirClass().getClassName();
         code.append(".class ").append(className).append(NL);
         System.out.println("Class: " + className);
+        String superClass;
+        if(classUnit.getSuperClass() == null){
+           superClass = "java/lang/Object";
+        }
+        else {
+            superClass = classUnit.getSuperClass().equals("Object") ? "java/lang/Object" : classUnit.getSuperClass();
+        }
 
+        code.append(".super ").append(superClass).append(NL).append(NL);
 
-        // TODO: Hardcoded to Object, needs to be expanded
-        code.append(".super java/lang/Object").append(NL).append(NL);
-
+        String constructur = ".method public <init>()V\n" +
+                "aload_0\n" +
+                "invokespecial " + superClass + "/<init>()V\n" +
+                "return\n" +
+                ".end method\n";
         // generate a single constructor method
-        var defaultConstructor = """
-                .method public <init>()V
-                    aload_0
-                    invokespecial java/lang/Object/<init>()V
-                    return
-                .end method
-                """;
-        code.append(defaultConstructor);
+        code.append(constructur);
 
         // generate code for all other methods
         for (var method : ollirResult.getOllirClass().getMethods()) {
