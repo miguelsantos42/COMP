@@ -63,13 +63,10 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
     private String visitImportDeclaration(JmmNode node, String s) {
         System.out.println("\nVisiting Import\n");
-        String importName = node.get("name");
-        String importNormalized = importName.replace(']', ' ')
-                .replace('[',' ')
-                .replace(", ", ".")
-                .strip();
-        if(this.imports.contains(importNormalized)){
-            var message = String.format("Import %s duplicated", importNormalized);
+        String importName = node.get("ID");
+
+        if(this.imports.contains(importName)){
+            var message = String.format("Import %s duplicated", importName);
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(node),
@@ -79,8 +76,9 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
             );
             return s;
         }
-        this.imports.add(importNormalized);
-        System.out.println("Import Name: " + importNormalized);
+
+        this.imports.add(importName);
+        System.out.println("Import Name: " + importName);
         return s;
     }
 
