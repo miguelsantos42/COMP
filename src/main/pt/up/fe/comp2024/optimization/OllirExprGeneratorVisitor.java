@@ -96,6 +96,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             }
             else {
                 is_this = jmmNode.getChild(0).get("name") + ".";
+                class_name = childImport.get("type");
             }
         }
 
