@@ -210,6 +210,8 @@ public class IntLit extends AnalysisPosVisitor {
                     message,
                     null));
         }
+        node.put("type","int");
+        node.put("isArray", "false");
         return null;
     }
 
