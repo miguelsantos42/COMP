@@ -67,19 +67,24 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             }
         }
 
+        String type;
+
         if(Objects.equals(child.get("type"), child.get("name"))){ // import call
             code.append("invokestatic(").append(child.get("type"));
+            type = ".V";
         }
         else { // class call
             var class_name = OptUtils.toOllirType(new Type(child.get("type"), false));
             code.append("invokevirtual(").append(child.get("name")).append(class_name);
+            type = OptUtils.toOllirType(new Type(child.get("type"), false));
         }
 
         var name = jmmNode.get("name");
-        var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
+
 
         code.append(", ").append('"').append(name).append('"')
             .append(params).append(")").append(type).append(END_STMT);
+
 
         System.out.println("code: " + code);
 
