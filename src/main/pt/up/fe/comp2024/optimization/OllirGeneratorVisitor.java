@@ -76,9 +76,10 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         }
 
         var name = jmmNode.get("name");
+        var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
 
         code.append(", ").append('"').append(name).append('"')
-            .append(params).append(").V").append(END_STMT);
+            .append(params).append(")").append(type).append(END_STMT);
 
         System.out.println("code: " + code);
 

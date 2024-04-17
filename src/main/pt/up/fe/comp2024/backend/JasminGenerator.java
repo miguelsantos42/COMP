@@ -189,11 +189,6 @@ public class JasminGenerator {
         System.out.println("lhs: " + lhs);
         System.out.println("Register: " + reg);
 
-/*
-        if ((assign.getRhs().getInstType().toString().equals("NOPER")
-                && !assign.getTypeOfAssign().getTypeOfElement().toString().equals("OBJECTREF"))
-                || !assign.getRhs().getInstType().toString().equals("NOPER")) {
-*/
 
         if(assign.getRhs().getInstType().toString().equals("NOPER") && !assign.getRhs().toString().contains("LiteralElement")) {
             String var = assign.getRhs().toString().substring(assign.getRhs().toString().lastIndexOf(' ') + 1, assign.getRhs().toString().indexOf('.'));
