@@ -59,6 +59,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         var class_name = jmmNode.getAncestor("ClassDecl").get().get("name");
         var is_this = "";
+
         StringBuilder param = new StringBuilder();
         for(var child : jmmNode.getChildren()) {
             if(child.getKind().equals("VarRefExpr")) {
@@ -111,6 +112,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
         var tmp = OptUtils.getTemp();
+        var temp_used = false;
 
         if(Objects.equals(childImport.get("type"), childImport.get("name"))) { // import call
             computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE);
@@ -121,17 +123,34 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         }
         else {
-            if(true){
-                // colocar aqui o código para o caso de ser um método de uma classe importada
+            for(var field : table.getFields()) {
+                if(field.getName().equals(jmmNode.getChild(0).get("name"))) {
 
+                    computation.append(tmp).append(OptUtils.toOllirType(field.getType())).append(SPACE);
+                    computation.append(ASSIGN).append(OptUtils.toOllirType(field.getType())).append(SPACE);
+                    computation.append("getfield(this, ").append(field.getName()).append(OptUtils.toOllirType(field.getType())).append(")");
+                    computation.append(OptUtils.toOllirType(field.getType())).append(END_STMT);
+                    temp_used = true;
+                }
             }
-            computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
-                    .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
+
+            if(temp_used){
+                var tmp2 = OptUtils.getTemp();
+                computation.append(tmp2).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
+                        .append("invokevirtual(").append(tmp).append(type).append(", ").append(name).append(param).append(type).append(END_STMT);
+                code.append(tmp2).append(type);
+            }
+            else {
+
+                computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
+                        .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
+                code.append(tmp).append(type);
+            }
         }
 
         System.out.println("computation2: " + computation);
 
-        code.append(tmp).append(type);
+        ;
 
 
         // Store the result of the computation in the HashMap

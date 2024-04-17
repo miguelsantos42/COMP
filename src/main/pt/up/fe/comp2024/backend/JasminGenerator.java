@@ -433,7 +433,7 @@ public class JasminGenerator {
             case "INT[]" -> "[I";
             case "BOOLEAN[]" -> "[Z";
             case "STRING[]" -> "[Ljava/lang/String;";
-            default -> throw new NotImplementedException(fieldInstructionType);
+            default -> throw new NotImplementedException(fieldInstructionType); //faltam os tipos que vêm dos imports
         };
     }
 

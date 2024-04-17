@@ -156,6 +156,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var rhs = exprVisitor.visit(node.getJmmChild(0));
 
         System.out.println("rhs: " + rhs.getCode());
+        System.out.println("rhs computation: " + rhs.getComputation());
         StringBuilder code = new StringBuilder();
 
         var isField_lhs = false;
