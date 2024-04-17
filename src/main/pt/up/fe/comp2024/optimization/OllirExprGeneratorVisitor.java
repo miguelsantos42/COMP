@@ -121,9 +121,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         }
         else {
+            if(true){
+                // colocar aqui o código para o caso de ser um método de uma classe importada
+
+            }
             computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
                     .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
-
         }
 
         System.out.println("computation2: " + computation);
