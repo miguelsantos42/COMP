@@ -21,8 +21,6 @@ import java.util.Set;
  */
 public class UndeclaredMethod extends AnalysisVisitor {
 
-    Set<String> methods = new HashSet<>();
-
     @Override
     public void buildVisitor() {
         addVisit("MethodClassCallExpr", this::visitMethodClassCallExpr);
@@ -97,18 +95,6 @@ public class UndeclaredMethod extends AnalysisVisitor {
     }
 
     private Void checkMethodtype(JmmNode node, SymbolTable table){
-        if(this.methods.contains(node.get("name"))){
-            String message = "Method already declared!";
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(node),
-                    NodeUtils.getColumn(node),
-                    message,
-                    null)
-            );
-            return null;
-        }
-        this.methods.add(node.get("name"));
         if(node.getChild(0).getKind().equals("MethodCodeBlockWithoutReturn")){
             return null;
         }

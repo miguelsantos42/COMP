@@ -129,19 +129,6 @@ public class UndeclaredVariable extends AnalysisVisitor {
         varRefExpr.put("isArray", "null");
         return null;
     }
-    private Void visitVarDecl(JmmNode node, SymbolTable table){
-        if(node.getChild(0).get("name").equals("int...")){
-            var message = String.format("Variable '%s' can not be declared with vararg type.", node);
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(node),
-                    NodeUtils.getColumn(node),
-                    message,
-                    null)
-            );
-        }
-        return null;
-    }
 
     private Void visitIDType(JmmNode node, SymbolTable table){
         if(table.getImports().stream().noneMatch(name -> name.equals(node.get("name"))) && !(node.get("name").equals(table.getClassName()))){

@@ -4,6 +4,9 @@ import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp2024.ast.NodeUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,11 +19,11 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     private String extendedClassName = "";
     private final ArrayList<String> imports = new ArrayList<>();
     private final ArrayList<String> methods = new ArrayList<>();
-
     private final ArrayList<Symbol> fields = new ArrayList<>();
     private final HashMap<String, Type> methodReturnTypes = new HashMap<>();
     private final HashMap<String, List<Symbol>> methodParams = new HashMap<>();
     private final HashMap<String, List<Symbol>> methodLocalVariables = new HashMap<>();
+    private final ArrayList<Report> reports = new ArrayList<>();
 
     private final JmmSymbolTable table;
 
@@ -32,6 +35,12 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
     public JmmSymbolTable getTable(){
         return this.table;
+    }
+
+    public List<Report> getReports() { return this.reports; };
+
+    protected void addReport(Report report) {
+        reports.add(report);
     }
 
     public void buildVisitor() {
@@ -54,13 +63,24 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
     private String visitImportDeclaration(JmmNode node, String s) {
         System.out.println("\nVisiting Import\n");
-        String importName = node.get("ID");
-//        String importNormalized = importName.replace(']', ' ')
-//                .replace('[',' ')
-//                .replace(", ", ".")
-//                .strip();
-        this.imports.add(importName);
-        System.out.println("Import Name: " + importName);
+        String importName = node.get("name");
+        String importNormalized = importName.replace(']', ' ')
+                .replace('[',' ')
+                .replace(", ", ".")
+                .strip();
+        if(this.imports.contains(importNormalized)){
+            var message = String.format("Import %s duplicated", importNormalized);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null)
+            );
+            return s;
+        }
+        this.imports.add(importNormalized);
+        System.out.println("Import Name: " + importNormalized);
         return s;
     }
 
@@ -90,6 +110,17 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     private String visitMethodDeclaration(JmmNode node, String s) {
         System.out.println("\nVisiting Method Declaration\n");
         String methodName = node.get("name");
+        if (this.methods.contains(methodName)) {
+            var message = String.format("Method %s already declared", node.get("name"));
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null)
+            );
+            return s;
+        }
         this.methods.add(methodName);
         System.out.println("Method Name: " + methodName);
         System.out.println("Method Children:");
@@ -111,6 +142,17 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
                     String paramName = paramList[i++];
                     boolean isArray = param.getKind().equals("IntVectorType1") || param.getKind().equals("IntVectorType2");
                     String paramType = isArray ? "int" : param.get("name");
+                    if(params.stream().anyMatch(p -> p.getName().equals(paramName))){
+                        var message = String.format("Parameter %s already declared", paramName);
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(param),
+                                NodeUtils.getColumn(param),
+                                message,
+                                null)
+                        );
+                        return s;
+                    }
                     params.add(new Symbol(new Type(paramType, isArray), paramName));
                 }
 
@@ -138,7 +180,9 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
     private String visitMainMethodDeclaration(JmmNode node, String s) {
         System.out.println("\n\nVisiting Main Method Declaration\n");
         this.methods.add("main");
-        this.methodParams.put("main", new ArrayList<>());
+        List<Symbol> params = new ArrayList<>();
+        params.add(new Symbol(new Type("string", true), "args"));
+        this.methodParams.put("main", params);
         this.methodReturnTypes.put("main", new Type("void", false));
         for (JmmNode child : node.getChildren()) {
             visit(child, s);
@@ -156,7 +200,29 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
             for (JmmNode child : node.getChildren()) {
                 if (Objects.equals(child.getKind(), "VarDeclaration")) {
                     Symbol var;
-                    if(child.getChild(0).getKind().equals("IntVectorType1") || child.getChild(0).getKind().equals("IntVectorType1"))
+                    if (child.getChild(0).getKind().equals("IntVectorType2")){
+                        var message = String.format("Local variable %s cannot be of type varArg", child.get("name"));
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(child),
+                                NodeUtils.getColumn(child),
+                                message,
+                                null)
+                        );
+                        return s;
+                    }
+                    if (localVariables.stream().anyMatch(p -> p.getName().equals(child.get("name")))  || this.methodParams.get(node.getParent().get("name")).stream().anyMatch(p -> p.getName().equals(child.get("name")))){
+                        var message = String.format("Field variable %s already declared", child.get("name"));
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(child),
+                                NodeUtils.getColumn(child),
+                                message,
+                                null)
+                        );
+                        return s;
+                    }
+                    if(child.getChild(0).getKind().equals("IntVectorType1"))
                         var = new Symbol(new Type("int", true), child.get("name"));
                     else
                         var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
@@ -171,7 +237,29 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
             for (JmmNode child : node.getChildren()) {
                 if (Objects.equals(child.getKind(), "VarDeclaration")) {
                     Symbol var;
-                    if(child.getChild(0).getKind().equals("IntVectorType1") || child.getChild(0).getKind().equals("IntVectorType1"))
+                    if (child.getChild(0).getKind().equals("IntVectorType2")){
+                        var message = String.format("Local variable %s cannot be of type varArg", child.get("name"));
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(child),
+                                NodeUtils.getColumn(child),
+                                message,
+                                null)
+                        );
+                        return s;
+                    }
+                    if (localVariables.stream().anyMatch(p -> p.getName().equals(child.get("name"))) || this.methodParams.get("main").stream().anyMatch(p -> p.getName().equals(child.get("name")))){
+                        var message = String.format("Field variable %s already declared", child.get("name"));
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(child),
+                                NodeUtils.getColumn(child),
+                                message,
+                                null)
+                        );
+                        return s;
+                    }
+                    if(child.getChild(0).getKind().equals("IntVectorType1"))
                         var = new Symbol(new Type("int", true), child.get("name"));
                     else
                         var = new Symbol(new Type(child.getChild(0).get("name"), false), child.get("name"));
@@ -187,9 +275,31 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
         String varName = node.get("name");
         String varType = node.getChild(0).get("name");
         boolean isArray = false;
-        if(node.getChild(0).getKind().equals("IntVectorType1") || node.getChild(0).getKind().equals("IntVectorType2")) {
+        if (node.getChild(0).getKind().equals("IntVectorType2")){
+            var message = String.format("Field variable %s cannot be of type varArg", varName);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null)
+            );
+            return s;
+        }
+        if(node.getChild(0).getKind().equals("IntVectorType1")) {
             isArray = true;
             varType = "int";
+        }
+        if (this.fields.stream().anyMatch(p -> p.getName().equals(varName))){
+            var message = String.format("Field variable %s already declared", varName);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(node),
+                    NodeUtils.getColumn(node),
+                    message,
+                    null)
+            );
+            return s;
         }
         this.fields.add(new Symbol(new Type(varType, isArray), varName));
         return s;

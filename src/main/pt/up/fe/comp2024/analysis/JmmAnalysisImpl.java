@@ -12,6 +12,7 @@ import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class JmmAnalysisImpl implements JmmAnalysis {
 
@@ -32,9 +33,27 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
     @Override
     public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
+        List<Report> reports = new ArrayList<>();
         JmmNode rootNode = parserResult.getRootNode();
-        JmmSymbolTableBuilder builder = new JmmSymbolTableBuilder(rootNode);
+        JmmSymbolTableBuilder builder = null;
+        try {
+            builder = new JmmSymbolTableBuilder(rootNode);
+            var tableReports = builder.getReports();
+            reports.addAll(tableReports);
+        } catch (Exception e) {
+            reports.add(Report.newError(Stage.SEMANTIC,
+                    -1,
+                    -1,
+                    "Problem while building symbol table '",
+                    e)
+            );
+        }
+        assert builder != null;
         JmmSymbolTable table = builder.getTable();
+
+        if(!reports.isEmpty()){
+            return new JmmSemanticsResult(parserResult, table, reports);
+        }
 
         System.out.println("\n\nPrinting Symbol Table:");
 
@@ -55,8 +74,6 @@ public class JmmAnalysisImpl implements JmmAnalysis {
             System.out.println("Parameters: " + table.getParameters(method));
             System.out.println("Local Variables: " + table.getLocalVariables(method));
         }
-
-        List<Report> reports = new ArrayList<>();
 
         // Visit all nodes in the AST
         for (var analysisPass : analysisPasses) {
