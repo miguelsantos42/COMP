@@ -67,7 +67,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             }
         }
 
-        String invokeType;
         if(Objects.equals(child.get("type"), child.get("name"))){ // import call
             code.append("invokestatic(").append(child.get("type"));
         }
@@ -231,7 +230,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
         // type
-        String retType = "";
+        String retType;
         if (node.getNumChildren() >= 2) {
             if (node.getJmmChild(0).getKind().contains("FunctionParameters")) {
                 retType = ".V";
