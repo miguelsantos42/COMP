@@ -54,13 +54,13 @@ public class JmmSymbolTableBuilder extends AJmmVisitor<String, String>  {
 
     private String visitImportDeclaration(JmmNode node, String s) {
         System.out.println("\nVisiting Import\n");
-        String importName = node.get("name");
-        String importNormalized = importName.replace(']', ' ')
-                .replace('[',' ')
-                .replace(", ", ".")
-                .strip();
-        this.imports.add(importNormalized);
-        System.out.println("Import Name: " + importNormalized);
+        String importName = node.get("ID");
+//        String importNormalized = importName.replace(']', ' ')
+//                .replace('[',' ')
+//                .replace(", ", ".")
+//                .strip();
+        this.imports.add(importName);
+        System.out.println("Import Name: " + importName);
         return s;
     }
 
