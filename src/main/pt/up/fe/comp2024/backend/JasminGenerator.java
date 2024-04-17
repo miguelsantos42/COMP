@@ -313,6 +313,10 @@ public class JasminGenerator {
             }
 
             for (var param : callInstruction.getArguments()) {
+                if(param.toString().contains("LiteralElement")) {
+                    code.append(generators.apply(param));
+                    continue;
+                }
                 String paramName = param.toString().substring(param.toString().indexOf(' ') + 1, param.toString().indexOf('.'));
                 var reg = currentMethod.getVarTable().get(paramName).getVirtualReg();
 

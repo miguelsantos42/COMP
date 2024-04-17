@@ -109,6 +109,13 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                     computation.append(visit.getComputation());
                 }
             }
+            else {
+                if(!child.equals(jmmNode.getChild(0))){
+                    param.append(", ");
+                    param.append(child.get("value"));
+                    param.append(OptUtils.toOllirType(TypeUtils.getExprType(child, table)));
+                }
+            }
 
             if(child.getKind().equals("ThisExpr")) {
                 is_this = "this.";
