@@ -189,11 +189,6 @@ public class JasminGenerator {
         System.out.println("lhs: " + lhs);
         System.out.println("Register: " + reg);
 
-/*
-        if ((assign.getRhs().getInstType().toString().equals("NOPER")
-                && !assign.getTypeOfAssign().getTypeOfElement().toString().equals("OBJECTREF"))
-                || !assign.getRhs().getInstType().toString().equals("NOPER")) {
-*/
 
         if(assign.getRhs().getInstType().toString().equals("NOPER") && !assign.getRhs().toString().contains("LiteralElement")) {
             String var = assign.getRhs().toString().substring(assign.getRhs().toString().lastIndexOf(' ') + 1, assign.getRhs().toString().indexOf('.'));
@@ -313,6 +308,10 @@ public class JasminGenerator {
             }
 
             for (var param : callInstruction.getArguments()) {
+                if(param.toString().contains("LiteralElement")) {
+                    code.append(generators.apply(param));
+                    continue;
+                }
                 String paramName = param.toString().substring(param.toString().indexOf(' ') + 1, param.toString().indexOf('.'));
                 var reg = currentMethod.getVarTable().get(paramName).getVirtualReg();
 
@@ -349,6 +348,10 @@ public class JasminGenerator {
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
 
             for (var param : callInstruction.getArguments()) {
+                if(param.toString().contains("LiteralElement")) {
+                    code.append(generators.apply(param));
+                    continue;
+                }
                 String paramName = param.toString().substring(param.toString().indexOf(' ') + 1, param.toString().indexOf('.'));
                 var reg = currentMethod.getVarTable().get(paramName).getVirtualReg();
 

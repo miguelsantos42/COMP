@@ -67,19 +67,26 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             }
         }
 
-        String invokeType;
+        String type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
+
         if(Objects.equals(child.get("type"), child.get("name"))){ // import call
             code.append("invokestatic(").append(child.get("type"));
+            type = ".V";
         }
         else { // class call
             var class_name = OptUtils.toOllirType(new Type(child.get("type"), false));
             code.append("invokevirtual(").append(child.get("name")).append(class_name);
+            if (Objects.equals(type, jmmNode.get("name"))){
+                type = ".V";
+            }
         }
 
         var name = jmmNode.get("name");
 
+
         code.append(", ").append('"').append(name).append('"')
-            .append(params).append(").V").append(END_STMT);
+            .append(params).append(")").append(type).append(END_STMT);
+
 
         System.out.println("code: " + code);
 
@@ -231,7 +238,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
         // type
-        String retType = "";
+        String retType;
         if (node.getNumChildren() >= 2) {
             if (node.getJmmChild(0).getKind().contains("FunctionParameters")) {
                 retType = ".V";

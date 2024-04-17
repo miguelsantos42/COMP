@@ -36,6 +36,7 @@ public class OptUtils {
             case "boolean" -> "bool";
             case "int[]", "int..." -> "array.i32";
             case "String" -> "string";
+            case "void" -> "V";
             default -> typeName;
         };
     }
