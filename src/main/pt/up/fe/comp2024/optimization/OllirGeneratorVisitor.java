@@ -167,6 +167,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             if(f.getName().equals(node.get("name"))) {
                 isField_lhs = true;
                 code.append("putfield(this, ").append(node.get("name")).append(lhs_type).append(", ").append(rhs.getCode()).append(").V").append(END_STMT);
+                break;
             }
         }
 

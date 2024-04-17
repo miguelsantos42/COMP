@@ -125,12 +125,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         else {
             for(var field : table.getFields()) {
                 if(field.getName().equals(jmmNode.getChild(0).get("name"))) {
-
                     computation.append(tmp).append(OptUtils.toOllirType(field.getType())).append(SPACE);
                     computation.append(ASSIGN).append(OptUtils.toOllirType(field.getType())).append(SPACE);
                     computation.append("getfield(this, ").append(field.getName()).append(OptUtils.toOllirType(field.getType())).append(")");
                     computation.append(OptUtils.toOllirType(field.getType())).append(END_STMT);
                     temp_used = true;
+                    break;
                 }
             }
 
@@ -141,7 +141,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 code.append(tmp2).append(type);
             }
             else {
-
                 computation.append(tmp).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE)
                         .append("invokevirtual(").append(call_name).append(class_name).append(", ").append(name).append(param).append(type).append(END_STMT);
                 code.append(tmp).append(type);
@@ -149,8 +148,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         System.out.println("computation2: " + computation);
-
-        ;
 
 
         // Store the result of the computation in the HashMap
@@ -221,7 +218,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
         // Check if the computation for the current node has already been performed
-        if (computedResults.containsKey(node)) {
+        if (computedResults.containsKey(node) || computedResults.containsKey(node.getJmmParent())) {
             // If it has, return the result of the previous computation
             return computedResults.get(node);
         }
