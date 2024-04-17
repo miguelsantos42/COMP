@@ -59,9 +59,13 @@ public class IntLit extends AnalysisPosVisitor {
         if(!node.getChild(0).hasAttribute("type") || !node.getChild(1).hasAttribute("type")){
             return null;
         }
-        if(node.getChild(0).get("type").equals("int") && node.getChild( 1).get("type").equals("int") && node.getChild(0).get("isArray").equals("false") && node.getChild(1).get("isArray").equals("false")){
+        else if(node.getChild(0).get("type").equals("null") || node.getChild(1).get("type").equals("null")) {
             return null;
-        }else {
+        }
+        else if(node.getChild(0).get("type").equals("int") && node.getChild( 1).get("type").equals("int") && node.getChild(0).get("isArray").equals("false") && node.getChild(1).get("isArray").equals("false")){
+            return null;
+        }
+        else {
             String message = "Binary operation " + operator + " is invalid between types that are not integer.";
             addReport(Report.newError(
                     Stage.SEMANTIC,
