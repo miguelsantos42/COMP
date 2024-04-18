@@ -31,7 +31,7 @@ public class TypeUtils {
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
             case NEW_OBJECT_EXPR -> new Type(expr.get("name"), false);
-            case METHOD_CLASS_CALL_EXPR, ASSIGN_STMT -> new Type(expr.get("type"), false);
+            case METHOD_CLASS_CALL_EXPR, ASSIGN_STMT, THIS_EXPR -> new Type(expr.get("type"), false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
     }

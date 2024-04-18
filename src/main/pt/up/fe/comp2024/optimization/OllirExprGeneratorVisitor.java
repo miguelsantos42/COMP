@@ -19,12 +19,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
-
     private final SymbolTable table;
-
-    private int preventDefault = 0;
-
-    private HashMap<JmmNode, OllirExprResult> computedResults = new HashMap<>();
+    private final HashMap<JmmNode, OllirExprResult> computedResults = new HashMap<>();
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
         this.table = table;
@@ -40,6 +36,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(NEW_OBJECT_EXPR, this::visitNewObjectExpr);
         addVisit(METHOD_CLASS_CALL_EXPR, this::visitMethodClassCallExpr);
         addVisit(PARENTHESIS_EXPR, this::visitParenthesisExpr);
+        addVisit(THIS_EXPR, this::visitThisExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -234,7 +231,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitNewObjectExpr(JmmNode jmmNode, Void unused) {
-
         if (computedResults.containsKey(jmmNode)) {
             // If it has, return the result of the previous computation
             return computedResults.get(jmmNode);
@@ -272,6 +268,13 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computedResults.put(jmmNode, result);
 
         return result;
+    }
+
+    private  OllirExprResult visitThisExpr(JmmNode jmmNode, Void unused) {
+        System.out.println("visiting this expr");
+        var type = jmmNode.getAncestor("ClassDecl").get().get("name");
+        var code = "this." + type;
+        return new OllirExprResult(code);
     }
 
     /**
