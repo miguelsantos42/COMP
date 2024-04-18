@@ -251,6 +251,10 @@ public class JasminGenerator {
 
         var className = ollirResult.getOllirClass().getClassName();
 
+        if(getFieldInstruction.getOperands().get(1).getType().toString().contains("OBJECTREF")){
+            className = getFieldInstruction.getOperands().get(1).getType().toString().substring(getFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, getFieldInstruction.getOperands().get(1).getType().toString().indexOf(")"));
+        }
+
         code.append("aload_0").append(NL);
 
         var type = getFieldType(getFieldInstruction.getFieldType().toString());
@@ -266,6 +270,10 @@ public class JasminGenerator {
 
         var className = ollirResult.getOllirClass().getClassName();
 
+        if(putFieldInstruction.getOperands().get(1).getType().toString().contains("OBJECTREF")){
+            className = putFieldInstruction.getOperands().get(1).getType().toString().substring(putFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, putFieldInstruction.getOperands().get(1).getType().toString().indexOf(")"));
+        }
+
 
         code.append("aload_0").append(NL);
 
@@ -274,7 +282,8 @@ public class JasminGenerator {
         code.append(generators.apply(value));
 
 
-        System.out.println("Field Type: " + putFieldInstruction.getOperands().get(1).getType()); //might not be the best way, what the I after the putfield instruction refer to?
+        System.out.println("Field Type: " + putFieldInstruction.getField().getName()); //might not be the best way, what the I after the putfield instruction refer to?
+
         var type = getFieldType(putFieldInstruction.getOperands().get(1).getType().toString());
 
         code.append("putfield ").append(className).append("/").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
@@ -433,7 +442,7 @@ public class JasminGenerator {
             case "INT[]" -> "[I";
             case "BOOLEAN[]" -> "[Z";
             case "STRING[]" -> "[Ljava/lang/String;";
-            default -> throw new NotImplementedException(fieldInstructionType); //faltam os tipos que vêm dos imports
+            default -> "V";
         };
     }
 
