@@ -92,7 +92,8 @@ public class JasminGenerator {
         for (var field : ollirResult.getOllirClass().getFields()) {
             System.out.println("Field: " + field);
             var type = getFieldType(field.getFieldType().toString());
-            code.append(".field ").append(field.getFieldAccessModifier().name().toLowerCase()).append(" ").append(field.getFieldName()).append(" ").append(type).append(NL);
+            var modifier = field.getFieldAccessModifier().name().equals("DEFAULT")  ? "public" : field.getFieldAccessModifier().name().toLowerCase();
+            code.append(".field ").append(modifier).append(" ").append(field.getFieldName()).append(" ").append(type).append(NL);
         }
 
         String constructur = ".method public <init>()V\n" +
