@@ -39,6 +39,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(BOOLEAN_LITERAL, this::visitBoolean);
         addVisit(NEW_OBJECT_EXPR, this::visitNewObjectExpr);
         addVisit(METHOD_CLASS_CALL_EXPR, this::visitMethodClassCallExpr);
+        addVisit(PARENTHESIS_EXPR, this::visitParenthesisExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -62,6 +63,13 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             call_name = "this.";
         }
         else if(childImport.getKind().equals("VarRefExpr")) {
+            var visitResult = visit(childImport);
+            computedResults.put(childImport, visitResult);
+            computation.append(visitResult.getComputation());
+            class_name = "";
+            call_name = visitResult.getCode();
+        }
+        else if(childImport.getKind().equals("ParenthesisExpr")){
             var visitResult = visit(childImport);
             computedResults.put(childImport, visitResult);
             computation.append(visitResult.getComputation());
@@ -227,6 +235,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     private OllirExprResult visitNewObjectExpr(JmmNode jmmNode, Void unused) {
 
+        if (computedResults.containsKey(jmmNode)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(jmmNode);
+        }
+
         System.out.println("visiting new object expr");
 
         StringBuilder computation = new StringBuilder();
@@ -240,7 +253,25 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         computation.append("invokespecial(").append(tmp).append(type).append(", \"\").V").append(END_STMT);
 
-        return new OllirExprResult(tmp + type, computation);
+        var result = new OllirExprResult(tmp + type, computation);
+        computedResults.put(jmmNode, result);
+
+        return result;
+    }
+
+    private OllirExprResult visitParenthesisExpr(JmmNode jmmNode, Void unused){
+        if (computedResults.containsKey(jmmNode)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(jmmNode);
+        }
+        System.out.println("visiting parenthesis expr");
+        var child = jmmNode.getJmmChild(0);
+        var visitResult = visit(child);
+
+        OllirExprResult result = new OllirExprResult(visitResult.getCode(), visitResult.getComputation());
+        computedResults.put(jmmNode, result);
+
+        return result;
     }
 
     /**

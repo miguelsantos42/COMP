@@ -59,12 +59,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder params = new StringBuilder();
         // params
-        if(jmmNode.getNumChildren() > 1) {
-            for (int i = 1; i < jmmNode.getNumChildren(); i++){
-                var expr = exprVisitor.visit(jmmNode.getJmmChild(i));
-                code.append(expr.getComputation());
-                params.append(", ").append(expr.getCode());
-            }
+
+        for (int i = 1; i < jmmNode.getNumChildren(); i++){
+            var expr = exprVisitor.visit(jmmNode.getJmmChild(i));
+            code.append(expr.getComputation());
+            params.append(", ").append(expr.getCode());
         }
 
         String type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
@@ -84,6 +83,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 code.append(visitResult.getComputation());
                 class_name = OptUtils.toOllirType(new Type(child.get("type"), false));
                 name = visitResult.getCode();
+            }
+            else if(child.getKind().equals("ParenthesisExpr")){
+                var expr = exprVisitor.visit(child);
+                code.append(expr.getComputation());
+                class_name = OptUtils.toOllirType(new Type(child.get("type"), false));
+                name = expr.getCode();
             }
 
             code.append("invokevirtual(").append(name);

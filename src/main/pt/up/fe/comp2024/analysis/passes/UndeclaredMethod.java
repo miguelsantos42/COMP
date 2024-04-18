@@ -30,6 +30,21 @@ public class UndeclaredMethod extends AnalysisVisitor {
 
     //todo add fluid type to method parameters
     private Void visitMethodClassCallExpr(JmmNode node, SymbolTable table) {
+        var newNode = node.getChild(0);
+        if(newNode.getKind().equals("ParenthesisExpr")){
+            var newNewNode = newNode.getChild(0);
+            if(node.getJmmParent().getKind().equals("AssignStmt")){
+                node.put("type", node.getJmmParent().get("type"));
+            }
+            else {
+                node.put("type", "null");
+            }
+            newNode.put("name", "parenthesis");
+            node.put("isArray", "false");
+            visit(newNewNode, table);
+            return null;
+        }
+
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var nodeName = node.get("name");
         Optional<String> method = table.getMethods().stream().filter(param->param.equals(nodeName)).findFirst();

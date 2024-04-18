@@ -24,6 +24,7 @@ public enum Kind {
 
     PARAM,
     ASSIGN_STMT,
+    PARENTHESIS_EXPR,
     RETURN_STMT,
     BINARY_EXPR,
     LOGICAL_EXPR,
