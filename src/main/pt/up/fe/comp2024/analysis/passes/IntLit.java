@@ -301,9 +301,9 @@ public class IntLit extends AnalysisPosVisitor {
             return null;
         }
         //todo there is a possible error when last parameter is of type int[] instead of int...
-        if(table.getParameters(nodeName).isEmpty() && node.getChildren().size() == 1){
+        if(table.getParameters(nodeName).isEmpty() && node.getChildren().size() <= 1){
             return null;
-        } else if (table.getParameters(nodeName).isEmpty() && node.getChildren().size() == 1){
+        } else if (table.getParameters(nodeName).isEmpty() || node.getChildren().size() <= 1){
             String message = "Wrong number of parameters";
             addReport(Report.newError(
                     Stage.SEMANTIC,
@@ -311,6 +311,7 @@ public class IntLit extends AnalysisPosVisitor {
                     NodeUtils.getColumn(node),
                     message,
                     null));
+            return null;
         }
         boolean hasVarArg = table.getParameters(nodeName).get(table.getParameters(nodeName).size()-1).getType().isArray();
         if((node.getNumChildren() != table.getParameters(nodeName).size()+1)){
