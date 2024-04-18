@@ -79,7 +79,7 @@ public class JasminGenerator {
         code.append(".class ").append(className).append(NL);
         System.out.println("Class: " + className);
         String superClass = "";
-        if(classUnit.getSuperClass() == null){
+        if(classUnit.getSuperClass() == null || classUnit.getSuperClass().equals("Object")){
            superClass = "java/lang/Object";
         }
         else {
