@@ -262,16 +262,17 @@ public class IntLit extends AnalysisPosVisitor {
     }
 
     private Void visitAssignStmt(JmmNode node, SymbolTable table){
-
+        // in case of a static method call from an import
         if(node.getChild(0).getKind().equals("MethodClassCallExpr")){
             var child = node.getChild(0).getChild(0);
-            if(child.getKind().equals("VarRefExpr") &&
+            if((child.getKind().equals("VarRefExpr") &&
                     (Objects.equals(child.get("name"), child.get("type"))
-                    || table.getImports().contains(child.get("type")))){
+                    || table.getImports().contains(child.get("type"))))
+                || (child.getKind().equals("ParenthesisExpr")
+                    && child.getChild(0).getKind().equals("NewObjectExpr"))){
                 return null;
             }
         }
-        // in case of a static method call from an import
 
         String childType = node.getChild(0).get("type");
         if( (node.get("type").equals(childType) && node.get("isArray").equals(node.getChild(0).get("isArray")))
@@ -317,9 +318,12 @@ public class IntLit extends AnalysisPosVisitor {
         var child = node.getChild(0);
 
         // in case of a static method call from an import
-        if(child.getKind().equals("VarRefExpr") &&
+        if((child.getKind().equals("VarRefExpr") &&
                 (Objects.equals(child.get("name"), child.get("type"))
-                || table.getImports().contains(child.get("type")))){
+                || table.getImports().contains(child.get("type"))
+                ))
+            || (child.getKind().equals("ParenthesisExpr")
+                && child.getChild(0).getKind().equals("NewObjectExpr"))){
             return null;
         }
 
