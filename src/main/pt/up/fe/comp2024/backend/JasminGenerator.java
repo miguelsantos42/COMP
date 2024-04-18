@@ -88,6 +88,13 @@ public class JasminGenerator {
 
         code.append(".super ").append(superClass).append(NL).append(NL);
 
+        // generate fields
+        for (var field : ollirResult.getOllirClass().getFields()) {
+            System.out.println("Field: " + field);
+            var type = getFieldType(field.getFieldType().toString());
+            code.append(".field ").append(field.getFieldAccessModifier().name().toLowerCase()).append(" ").append(field.getFieldName()).append(" ").append(type).append(NL);
+        }
+
         String constructur = ".method public <init>()V\n" +
                 "aload_0\n" +
                 "invokespecial " + superClass + "/<init>()V\n" +
