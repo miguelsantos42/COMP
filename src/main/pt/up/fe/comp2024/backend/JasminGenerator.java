@@ -252,7 +252,12 @@ public class JasminGenerator {
         var className = ollirResult.getOllirClass().getClassName();
 
         if(getFieldInstruction.getOperands().get(1).getType().toString().contains("OBJECTREF")){
-            className = getFieldInstruction.getOperands().get(1).getType().toString().substring(getFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, getFieldInstruction.getOperands().get(1).getType().toString().indexOf(")"));
+            for(var imp : ollirResult.getOllirClass().getImports()){
+                if(imp.toString().contains(getFieldInstruction.getOperands().get(1).getType().toString().substring(getFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, getFieldInstruction.getOperands().get(1).getType().toString().indexOf(")")))){
+                    var split = imp.toString().split("\\.");
+                    className = String.join("/", split);
+                }
+            }
         }
 
         code.append("aload_0").append(NL);
@@ -271,8 +276,12 @@ public class JasminGenerator {
         var className = ollirResult.getOllirClass().getClassName();
 
         if(putFieldInstruction.getOperands().get(1).getType().toString().contains("OBJECTREF")){
-            className = putFieldInstruction.getOperands().get(1).getType().toString().substring(putFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, putFieldInstruction.getOperands().get(1).getType().toString().indexOf(")"));
-        }
+            for(var imp : ollirResult.getOllirClass().getImports()){
+                if(imp.toString().contains(putFieldInstruction.getOperands().get(1).getType().toString().substring(putFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, putFieldInstruction.getOperands().get(1).getType().toString().indexOf(")")))){
+                    var split = imp.toString().split("\\.");
+                    className = String.join("/", split);
+                }
+            }        }
 
 
         code.append("aload_0").append(NL);
