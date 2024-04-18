@@ -37,7 +37,7 @@ public class UndeclaredMethod extends AnalysisVisitor {
                 node.put("type", node.getJmmParent().get("type"));
             }
             else {
-                node.put("type", "null");
+                node.put("type", "int");
             }
             newNode.put("name", "parenthesis");
             node.put("isArray", "false");
