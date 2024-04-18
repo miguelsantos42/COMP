@@ -166,7 +166,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         System.out.println("visiting assign stmt: " + node);
 
-        var lhs_type = OptUtils.toOllirType(TypeUtils.getExprType(node.getJmmChild(0), table));
+        var lhs_type = OptUtils.toOllirType(TypeUtils.getExprType(node, table));
+        node.getChild(0).put("type", node.get("type"));
         var lhs = node.get("name") + lhs_type;
         System.out.println("lhs: " + lhs);
 

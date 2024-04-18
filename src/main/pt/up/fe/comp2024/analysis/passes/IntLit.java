@@ -8,6 +8,7 @@ import pt.up.fe.comp2024.analysis.AnalysisPosVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class IntLit extends AnalysisPosVisitor {
@@ -261,8 +262,18 @@ public class IntLit extends AnalysisPosVisitor {
     }
 
     private Void visitAssignStmt(JmmNode node, SymbolTable table){
+
+        if(node.getChild(0).getKind().equals("MethodClassCallExpr")){
+            var child = node.getChild(0).getChild(0);
+            if(child.getKind().equals("VarRefExpr") && Objects.equals(child.get("name"), child.get("type"))){
+                return null;
+            }
+        }
+        // in case of a static method call from an import
+
         String childType = node.getChild(0).get("type");
-        if( (node.get("type").equals(childType) && node.get("isArray").equals(node.getChild(0).get("isArray"))) || (node.get("type").equals(table.getSuper()) && childType.equals(table.getClassName()))){
+        if( (node.get("type").equals(childType) && node.get("isArray").equals(node.getChild(0).get("isArray")))
+                || (node.get("type").equals(table.getSuper()) && childType.equals(table.getClassName()))){
             return null;
         } else {
             String message = "Invalid = operation between types!";
@@ -300,8 +311,16 @@ public class IntLit extends AnalysisPosVisitor {
         if(method.isEmpty()){
             return null;
         }
+
+        var child = node.getChild(0);
+
+        // in case of a static method call from an import
+        if(child.getKind().equals("VarRefExpr") && Objects.equals(child.get("name"), child.get("type"))){
+            return null;
+        }
+
         //todo there is a possible error when last parameter is of type int[] instead of int...
-        if(table.getParameters(nodeName).isEmpty() && node.getChildren().size() <= 1){
+        if((table.getParameters(nodeName).isEmpty() && node.getChildren().size() == 1)){
             return null;
         } else if (table.getParameters(nodeName).isEmpty() || node.getChildren().size() <= 1){
             String message = "Wrong number of parameters";
