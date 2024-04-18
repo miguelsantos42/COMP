@@ -74,10 +74,19 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             type = ".V";
         }
         else { // class call or Object import call
-            var visitResult = exprVisitor.visit(child);
-            code.append(visitResult.getComputation());
-            var class_name = OptUtils.toOllirType(new Type(child.get("type"), false));
-            code.append("invokevirtual(").append(visitResult.getCode());
+            String name = "";
+            String class_name = "";
+            if(child.getKind().equals("ThisExpr")) {
+                name = "this." + child.getAncestor("ClassDecl").get().get("name");
+            }
+            else if(child.getKind().equals("VarRefExpr")) {
+                var visitResult = exprVisitor.visit(child);
+                code.append(visitResult.getComputation());
+                class_name = OptUtils.toOllirType(new Type(child.get("type"), false));
+                name = visitResult.getCode();
+            }
+
+            code.append("invokevirtual(").append(name);
             for(var imp : table.getImports()){
                 if (Objects.equals(class_name, "." + imp)) {
                     type = ".V";
