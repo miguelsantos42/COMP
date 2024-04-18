@@ -55,7 +55,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
-        var child = jmmNode.getJmmChild(0);
+        var child = jmmNode.getChild(0);
 
         StringBuilder params = new StringBuilder();
         // params
@@ -74,8 +74,10 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             type = ".V";
         }
         else { // class call or Object import call
+            var visitResult = exprVisitor.visit(child);
+            code.append(visitResult.getComputation());
             var class_name = OptUtils.toOllirType(new Type(child.get("type"), false));
-            code.append("invokevirtual(").append(child.get("name")).append(class_name);
+            code.append("invokevirtual(").append(visitResult.getCode());
             for(var imp : table.getImports()){
                 if (Objects.equals(class_name, "." + imp)) {
                     type = ".V";
