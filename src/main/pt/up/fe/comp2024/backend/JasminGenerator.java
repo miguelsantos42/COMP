@@ -78,12 +78,17 @@ public class JasminGenerator {
         var className = ollirResult.getOllirClass().getClassName();
         code.append(".class ").append(className).append(NL);
         System.out.println("Class: " + className);
-        String superClass;
+        String superClass = "";
         if(classUnit.getSuperClass() == null){
            superClass = "java/lang/Object";
         }
         else {
-            superClass = classUnit.getSuperClass().equals("Object") ? "java/lang/Object" : classUnit.getSuperClass();
+            for(var imp : ollirResult.getOllirClass().getImports()){
+                if(imp.toString().contains(classUnit.getSuperClass())){
+                    var split = imp.toString().split("\\.");
+                    superClass = String.join("/", split);
+                }
+            }
         }
 
         code.append(".super ").append(superClass).append(NL).append(NL);
@@ -289,7 +294,8 @@ public class JasminGenerator {
                     var split = imp.toString().split("\\.");
                     className = String.join("/", split);
                 }
-            }        }
+            }
+        }
 
 
         code.append("aload_0").append(NL);
