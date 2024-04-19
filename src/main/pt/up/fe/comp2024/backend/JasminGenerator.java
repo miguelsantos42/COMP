@@ -429,8 +429,21 @@ public class JasminGenerator {
     }
 
     private StringBuilder generateParams(ArrayList<Element> paramList) {
+        var imports = this.ollirResult.getOllirClass().getImports();
         var params = new StringBuilder();
+        String paramS = "";
         for (var param : paramList) {
+            if(param.getType().toString().contains("OBJECTREF")) {
+                paramS = param.getType().toString().substring(param.getType().toString().indexOf('(') + 1, param.getType().toString().indexOf(')'));
+
+                for (var imp : imports) {
+                    if (imp.toString().contains(paramS)) {
+                        var split = imp.toString().split("\\.");
+                        paramS = String.join("/", split);
+                    }
+                }
+            }
+
             System.out.println("Param: " + param.getType());
             switch (param.getType().toString()) {
                 case "INT32" -> params.append("I");
@@ -439,13 +452,24 @@ public class JasminGenerator {
                 case "INT32[]" -> params.append("[I");
                 case "BOOLEAN[]" -> params.append("[Z");
                 case "STRING[]" -> params.append("[Ljava/lang/String;");
-                default -> params.append("L").append(param.getType().toString().substring(param.getType().toString().indexOf('(') + 1, param.getType().toString().indexOf(')'))).append(";");
+                default -> params.append("L").append(paramS).append(";");
             }
         }
         return params;
     }
 
     private String getReturnType(String returnType) {
+        var imports = this.ollirResult.getOllirClass().getImports();
+        if(returnType.contains("OBJECTREF")) {
+            returnType = returnType.substring(returnType.indexOf('(') + 1, returnType.indexOf(')'));
+
+            for (var imp : imports) {
+                if (imp.toString().contains(returnType)) {
+                    var split = imp.toString().split("\\.");
+                    returnType = String.join("/", split);
+                }
+            }
+        }
 
         return switch (returnType) {
             case "INT32" -> "I";
@@ -455,11 +479,24 @@ public class JasminGenerator {
             case "BOOLEAN[]" -> "[Z";
             case "STRING[]" -> "[Ljava/lang/String;";
             case "VOID" -> "V";
-            default -> "L" + returnType.substring(returnType.indexOf('(') + 1, returnType.indexOf(')')) + ";";
+            default -> "L" + returnType + ";";
         };
     }
 
     private String getFieldType(String fieldInstructionType) {
+        var imports = this.ollirResult.getOllirClass().getImports();
+        if(fieldInstructionType.contains("OBJECTREF")) {
+            fieldInstructionType = fieldInstructionType.substring(fieldInstructionType.indexOf('(') + 1, fieldInstructionType.indexOf(')'));
+
+            for (var imp : imports) {
+                if (imp.toString().contains(fieldInstructionType)) {
+                    var split = imp.toString().split("\\.");
+                    fieldInstructionType = String.join("/", split);
+                }
+            }
+        }
+
+
         return switch (fieldInstructionType) {
             case "INT32" -> "I";
             case "BOOLEAN" -> "Z";
@@ -467,7 +504,7 @@ public class JasminGenerator {
             case "INT[]" -> "[I";
             case "BOOLEAN[]" -> "[Z";
             case "STRING[]" -> "[Ljava/lang/String;";
-            default -> "L" + fieldInstructionType.substring(fieldInstructionType.indexOf('(') + 1, fieldInstructionType.indexOf(')')) + ";" ;
+            default -> "L" + fieldInstructionType + ";" ;
         };
     }
 
