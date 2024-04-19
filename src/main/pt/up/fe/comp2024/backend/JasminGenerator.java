@@ -9,6 +9,7 @@ import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -364,7 +365,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            code.append("invokevirtual ").append(className).append(".").append(literal);
+            code.append("invokevirtual ").append(className).append("/").append(literal);
 
             var returnType = getReturnType(callInstruction.getReturnType().toString());
 
@@ -381,7 +382,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            code.append("invokespecial ").append(className).append(".").append("<init>()V").append(NL);
+            code.append("invokespecial ").append(className).append("/").append("<init>()V").append(NL);
             code.append("pop").append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("NEW")) {
@@ -405,7 +406,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            code.append("invokestatic ").append(callerName).append(".").append(literal);
+            code.append("invokestatic ").append(callerName).append("/").append(literal);
 
             var returnType = getReturnType(callInstruction.getReturnType().toString());
 
@@ -478,7 +479,9 @@ public class JasminGenerator {
             for (var imp : imports) {
                 if (imp.toString().contains(returnType)) {
                     var split = imp.toString().split("\\.");
-                    returnType = String.join("/", split);
+                    // Join using "/" except for the last part
+                    returnType = String.join("/", Arrays.copyOf(split, split.length - 1))
+                            + "/" + split[split.length - 1];
                 }
             }
         }
