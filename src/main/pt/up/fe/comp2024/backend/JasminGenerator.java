@@ -325,7 +325,7 @@ public class JasminGenerator {
         var imports = this.ollirResult.getOllirClass().getImports();
         if(callInstruction.getCaller().getType().toString().contains("OBJECTREF")) {
             for (var imp : imports) {
-                if (imp.toString().contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')')))) {
+                if (imp.toString().contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'))) && !imp.toString().contains(ollirResult.getOllirClass().getClassName())) {
                     var split = imp.toString().split("\\.");
                     className = String.join("/", split);
                 }
