@@ -310,7 +310,7 @@ public class JasminGenerator {
 
         var type = getFieldType(putFieldInstruction.getOperands().get(1).getType().toString());
 
-        code.append("putfield ").append(className).append(".").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
+        code.append("putfield ").append(className).append("/").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
 
         return code.toString();
     }
@@ -328,7 +328,7 @@ public class JasminGenerator {
             for (var imp : imports) {
                 if (imp.toString().contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'))) && !imp.toString().contains(ollirResult.getOllirClass().getClassName())) {
                     var split = imp.toString().split("\\.");
-                    className = String.join(".", split);
+                    className = String.join("/", split);
                 }
             }
         }
@@ -452,7 +452,9 @@ public class JasminGenerator {
                 for (var imp : imports) {
                     if (imp.toString().contains(paramS)) {
                         var split = imp.toString().split("\\.");
-                        paramS = String.join(".", split);
+                        // Join using "/" except for the last part
+                        paramS = String.join(".", Arrays.copyOf(split, split.length - 1))
+                                + "/" + split[split.length - 1];
                     }
                 }
             }
