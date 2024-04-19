@@ -102,7 +102,7 @@ public class JasminGenerator {
 
         String constructur = ".method public <init>()V\n" +
                 "aload_0\n" +
-                "invokespecial " + superClass + "/<init>()V\n" +
+                "invokespecial " + superClass + ".<init>()V\n" +
                 "return\n" +
                 ".end method\n";
         // generate a single constructor method
@@ -381,7 +381,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            code.append("invokespecial ").append(className).append("/").append("<init>()V").append(NL);
+            code.append("invokespecial ").append(className).append(".").append("<init>()V").append(NL);
             code.append("pop").append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("NEW")) {
