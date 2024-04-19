@@ -478,7 +478,7 @@ public class JasminGenerator {
             for (var imp : imports) {
                 if (imp.toString().contains(returnType)) {
                     var split = imp.toString().split("\\.");
-                    returnType = String.join(".", split);
+                    returnType = String.join("/", split);
                 }
             }
         }
