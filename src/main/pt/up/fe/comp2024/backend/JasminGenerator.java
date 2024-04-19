@@ -8,7 +8,6 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
-import java.lang.invoke.StringConcatFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -320,7 +319,18 @@ public class JasminGenerator {
         System.out.println("Call: " + callInstruction);
         var code = new StringBuilder();
 
-        var className = ollirResult.getOllirClass().getClassName();
+        var className = callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'));
+
+        var imports = this.ollirResult.getOllirClass().getImports();
+        if(callInstruction.getCaller().getType().toString().contains("OBJECTREF")) {
+            for (var imp : imports) {
+                if (imp.toString().contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')')))) {
+                    var split = imp.toString().split("\\.");
+                    className = String.join("/", split);
+                }
+            }
+        }
+
 
         //code.append(callInstruction.getOperands());
 
