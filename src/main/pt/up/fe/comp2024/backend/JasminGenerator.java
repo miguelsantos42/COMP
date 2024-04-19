@@ -310,7 +310,7 @@ public class JasminGenerator {
 
         var type = getFieldType(putFieldInstruction.getOperands().get(1).getType().toString());
 
-        code.append("putfield ").append(className).append("/").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
+        code.append("putfield ").append(className).append(".").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
 
         return code.toString();
     }
@@ -328,7 +328,7 @@ public class JasminGenerator {
             for (var imp : imports) {
                 if (imp.toString().contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'))) && !imp.toString().contains(ollirResult.getOllirClass().getClassName())) {
                     var split = imp.toString().split("\\.");
-                    className = String.join("/", split);
+                    className = String.join(".", split);
                 }
             }
         }
@@ -365,7 +365,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            code.append("invokevirtual ").append(className).append("/").append(literal);
+            code.append("invokevirtual ").append(className).append(".").append(literal);
 
             var returnType = getReturnType(callInstruction.getReturnType().toString());
 
@@ -382,7 +382,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            code.append("invokespecial ").append(className).append("/").append("<init>()V").append(NL);
+            code.append("invokespecial ").append(className).append(".").append("<init>()V").append(NL);
             code.append("pop").append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("NEW")) {
@@ -452,9 +452,7 @@ public class JasminGenerator {
                 for (var imp : imports) {
                     if (imp.toString().contains(paramS)) {
                         var split = imp.toString().split("\\.");
-                        // Join using "/" except for the last part
-                        paramS = String.join(".", Arrays.copyOf(split, split.length - 1))
-                                + "/" + split[split.length - 1];
+                        paramS = String.join(".", split);
                     }
                 }
             }
