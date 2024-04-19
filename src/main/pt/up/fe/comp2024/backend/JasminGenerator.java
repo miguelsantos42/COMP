@@ -210,8 +210,9 @@ public class JasminGenerator {
             String typeOfAssign = assign.getRhs().toString().substring(assign.getRhs().toString().lastIndexOf('.') + 1);
             var loadInstruction = getLoadInstruction(typeOfAssign, loadReg);
 
-            code.append(loadInstruction).append(loadReg).append(NL);
-
+            if(!var.contains("tmp")) {
+                code.append(loadInstruction).append(loadReg).append(NL);
+            }
         }
 
         var storeInstruction = getStoreInstruction(operand.getType().toString(), reg);
