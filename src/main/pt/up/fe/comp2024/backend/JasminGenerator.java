@@ -85,7 +85,7 @@ public class JasminGenerator {
             for(var imp : ollirResult.getOllirClass().getImports()){
                 if(imp.toString().contains(classUnit.getSuperClass())){
                     var split = imp.toString().split("\\.");
-                    superClass = String.join("/", split);
+                    superClass = String.join(".", split);
                 }
             }
         }
@@ -268,7 +268,7 @@ public class JasminGenerator {
             for(var imp : ollirResult.getOllirClass().getImports()){
                 if(imp.toString().contains(getFieldInstruction.getOperands().get(1).getType().toString().substring(getFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, getFieldInstruction.getOperands().get(1).getType().toString().indexOf(")")))){
                     var split = imp.toString().split("\\.");
-                    className = String.join("/", split);
+                    className = String.join(".", split);
                 }
             }
         }
@@ -292,7 +292,7 @@ public class JasminGenerator {
             for(var imp : ollirResult.getOllirClass().getImports()){
                 if(imp.toString().contains(putFieldInstruction.getOperands().get(1).getType().toString().substring(putFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, putFieldInstruction.getOperands().get(1).getType().toString().indexOf(")")))){
                     var split = imp.toString().split("\\.");
-                    className = String.join("/", split);
+                    className = String.join(".", split);
                 }
             }
         }
@@ -327,7 +327,7 @@ public class JasminGenerator {
             for (var imp : imports) {
                 if (imp.toString().contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'))) && !imp.toString().contains(ollirResult.getOllirClass().getClassName())) {
                     var split = imp.toString().split("\\.");
-                    className = String.join("/", split);
+                    className = String.join(".", split);
                 }
             }
         }
@@ -451,7 +451,7 @@ public class JasminGenerator {
                 for (var imp : imports) {
                     if (imp.toString().contains(paramS)) {
                         var split = imp.toString().split("\\.");
-                        paramS = String.join("/", split);
+                        paramS = String.join(".", split);
                     }
                 }
             }
@@ -478,7 +478,7 @@ public class JasminGenerator {
             for (var imp : imports) {
                 if (imp.toString().contains(returnType)) {
                     var split = imp.toString().split("\\.");
-                    returnType = String.join("/", split);
+                    returnType = String.join(".", split);
                 }
             }
         }
@@ -503,7 +503,7 @@ public class JasminGenerator {
             for (var imp : imports) {
                 if (imp.toString().contains(fieldInstructionType)) {
                     var split = imp.toString().split("\\.");
-                    fieldInstructionType = String.join("/", split);
+                    fieldInstructionType = String.join(".", split);
                 }
             }
         }
