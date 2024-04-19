@@ -277,7 +277,7 @@ public class JasminGenerator {
 
         var type = getFieldType(getFieldInstruction.getFieldType().toString());
 
-        code.append("getfield ").append(className).append("/").append(getFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
+        code.append("getfield ").append(className).append(".").append(getFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
 
         return code.toString();
     }
@@ -309,7 +309,7 @@ public class JasminGenerator {
 
         var type = getFieldType(putFieldInstruction.getOperands().get(1).getType().toString());
 
-        code.append("putfield ").append(className).append("/").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
+        code.append("putfield ").append(className).append(".").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
 
         return code.toString();
     }
@@ -364,7 +364,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            code.append("invokevirtual ").append(className).append("/").append(literal);
+            code.append("invokevirtual ").append(className).append(".").append(literal);
 
             var returnType = getReturnType(callInstruction.getReturnType().toString());
 
@@ -405,7 +405,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            code.append("invokestatic ").append(callerName).append("/").append(literal);
+            code.append("invokestatic ").append(callerName).append(".").append(literal);
 
             var returnType = getReturnType(callInstruction.getReturnType().toString());
 
