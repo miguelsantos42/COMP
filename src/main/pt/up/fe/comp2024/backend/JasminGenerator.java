@@ -420,7 +420,7 @@ public class JasminGenerator {
             var type = switch (returnInst.getOperand().getType().toString()) {
                 case "INT32", "BOOLEAN" -> "i";
                 case "STRING" -> "a";
-                default -> throw new NotImplementedException(returnInst.getOperand().getType());
+                default -> "a";
             };
             code.append(type).append("return").append(NL);
         }
@@ -439,13 +439,14 @@ public class JasminGenerator {
                 case "INT32[]" -> params.append("[I");
                 case "BOOLEAN[]" -> params.append("[Z");
                 case "STRING[]" -> params.append("[Ljava/lang/String;");
-                default -> params.append("V");
+                default -> params.append("L").append(param.getType().toString().substring(param.getType().toString().indexOf('(') + 1, param.getType().toString().indexOf(')'))).append(";");
             }
         }
         return params;
     }
 
     private String getReturnType(String returnType) {
+
         return switch (returnType) {
             case "INT32" -> "I";
             case "BOOLEAN" -> "Z";
@@ -454,7 +455,7 @@ public class JasminGenerator {
             case "BOOLEAN[]" -> "[Z";
             case "STRING[]" -> "[Ljava/lang/String;";
             case "VOID" -> "V";
-            default -> throw new NotImplementedException(returnType);
+            default -> "L" + returnType.substring(returnType.indexOf('(') + 1, returnType.indexOf(')')) + ";";
         };
     }
 
