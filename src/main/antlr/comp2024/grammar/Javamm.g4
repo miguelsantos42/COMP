@@ -28,7 +28,7 @@ INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 BOOLEAN : 'boolean' ;
-LENGTH : 'length' ;
+LENGTH : '.length' ;
 INT_VECTOR : 'int' (' ')? LBRACKET (' ')? RBRACKET ;
 INT_VECTOR2: 'int' (' ')? DOT DOT DOT;
 IF : 'if' ;
@@ -151,7 +151,7 @@ stmt
 expr
     : LPAREN expr RPAREN #ParenthesisExpr // (a)
     | expr LBRACKET expr RBRACKET #ArrayAccessExpr // a[b]
-    | expr DOT LENGTH #ArrayLengthExpr // a.length
+    | expr LENGTH #ArrayLengthExpr // a.length
     | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodClassCallExpr // a.method(b, c)
     | EXCLAMATION expr #NegationExpr // !a
     | NEW INT LBRACKET expr RBRACKET #NewArrayExpr // new int[a]
