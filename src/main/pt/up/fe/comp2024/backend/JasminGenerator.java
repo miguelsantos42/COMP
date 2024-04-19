@@ -467,7 +467,7 @@ public class JasminGenerator {
             case "INT[]" -> "[I";
             case "BOOLEAN[]" -> "[Z";
             case "STRING[]" -> "[Ljava/lang/String;";
-            default -> "V";
+            default -> "L" + fieldInstructionType.substring(fieldInstructionType.indexOf('(') + 1, fieldInstructionType.indexOf(')')) + ";" ;
         };
     }
 
