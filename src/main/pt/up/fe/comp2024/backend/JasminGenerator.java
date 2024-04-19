@@ -318,9 +318,10 @@ public class JasminGenerator {
     private String generateCall(CallInstruction callInstruction) {
         System.out.println("Call: " + callInstruction);
         var code = new StringBuilder();
-
-        var className = callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'));
-
+        var className = ollirResult.getOllirClass().getClassName();
+        if(callInstruction.getCaller().getType().toString().contains("OBJECTREF")) {
+            className = callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'));
+        }
         var imports = this.ollirResult.getOllirClass().getImports();
         if(callInstruction.getCaller().getType().toString().contains("OBJECTREF")) {
             for (var imp : imports) {
