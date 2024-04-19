@@ -382,11 +382,12 @@ public class JasminGenerator {
             }
 
             code.append("invokespecial ").append(className).append("/").append("<init>()V").append(NL);
-            //code.append("pop").append(NL);
+            code.append("pop").append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("NEW")) {
             code.append("new ").append(className).append(NL);
-            //code.append("dup").append(NL);
+
+            code.append("dup").append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("invokestatic")){
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
