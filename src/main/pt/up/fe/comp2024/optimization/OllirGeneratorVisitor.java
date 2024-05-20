@@ -45,6 +45,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(PARAM, this::visitParam);
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
+        addVisit(IF_STMT, this::visitIfStmt);
+        addVisit(WHILE_STMT, this::defaultVisit);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -217,6 +219,54 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
+    private String visitIfStmt(JmmNode node, Void unused) {
+        System.out.println("visiting if stmt");
+
+        StringBuilder code = new StringBuilder();
+
+        var condition = exprVisitor.visit(node.getJmmChild(0));
+        var trueBlock = visit(node.getJmmChild(1));
+        var elseBlock = visit(node.getJmmChild(2));
+
+        code.append("if (").append(condition.getCode()).append(") goto else").append(END_STMT);
+
+        code.append(elseBlock);
+
+        code.append("goto endif").append(END_STMT);
+
+        code.append("else:").append(NL);
+
+        code.append(trueBlock);
+
+        code.append("endif:").append(NL);
+
+        return code.toString();
+    }
+
+    private String visitWhileStmt(JmmNode node, Void unused) {
+        System.out.println("visiting while stmt");
+
+        StringBuilder code = new StringBuilder();
+
+        code.append("while_").append(node.get("id")).append("_start").append(L_BRACKET);
+
+        var condition = exprVisitor.visit(node.getJmmChild(0));
+        code.append(condition.getComputation());
+
+        code.append("if ").append(condition.getCode()).append(" goto ").append("while_").append(node.get("id")).append("_body").append(END_STMT);
+
+        code.append("goto ").append("while_").append(node.get("id")).append("_end").append(END_STMT);
+
+        code.append("while_").append(node.get("id")).append("_body").append(L_BRACKET);
+
+        code.append(visit(node.getJmmChild(1)));
+
+        code.append("goto ").append("while_").append(node.get("id")).append("_start").append(END_STMT);
+
+        code.append("while_").append(node.get("id")).append("_end").append(NL);
+
+        return code.toString();
+    }
 
     private String visitReturn(JmmNode node, Void unused) {
         System.out.println("visiting return");

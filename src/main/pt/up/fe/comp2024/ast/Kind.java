@@ -20,6 +20,8 @@ public enum Kind {
     NEW_OBJECT_EXPR,
     PARAM,
     ASSIGN_STMT,
+    IF_STMT,
+    WHILE_STMT,
     PARENTHESIS_EXPR,
     THIS_EXPR,
     RETURN_STMT,
@@ -27,11 +29,12 @@ public enum Kind {
     LOGICAL_EXPR,
     INTEGER_LITERAL,
     BOOLEAN_LITERAL,
+    NEGATION_EXPR,
     VAR_REF_EXPR;
 
 
-    private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, LOGICAL_EXPR, INTEGER_LITERAL, BOOLEAN_LITERAL, VAR_REF_EXPR, NEW_OBJECT_EXPR);
+    private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, IF_STMT, WHILE_STMT, RETURN_STMT);
+    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, LOGICAL_EXPR, INTEGER_LITERAL, BOOLEAN_LITERAL, NEGATION_EXPR, VAR_REF_EXPR, NEW_OBJECT_EXPR);
 
     private final String name;
 

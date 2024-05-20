@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.Ollir;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -19,6 +20,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
+    private final String NL = "\n";
     private final SymbolTable table;
     private final HashMap<JmmNode, OllirExprResult> computedResults = new HashMap<>();
 
@@ -37,6 +39,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(METHOD_CLASS_CALL_EXPR, this::visitMethodClassCallExpr);
         addVisit(PARENTHESIS_EXPR, this::visitParenthesisExpr);
         addVisit(THIS_EXPR, this::visitThisExpr);
+        addVisit(NEGATION_EXPR, this::visitNegationExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -179,13 +182,33 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String code = OptUtils.getTemp() + resOllirType;
 
 
-        computation.append(code).append(SPACE)
-                .append(ASSIGN).append(resOllirType).append(SPACE)
-                .append(lhs.getCode()).append(SPACE);
+        // short-circuit
+        if(Objects.equals(node.get("op"), "&&")) {
+                computation.append("if (").append(lhs.getCode()).append(") goto l1").append(END_STMT);
+                computation.append(code).append(SPACE)
+                        .append(ASSIGN).append(resOllirType).append(SPACE)
+                        .append("0.bool").append(END_STMT);
+                computation.append("goto endif").append(END_STMT);
+                computation.append("l1:").append(NL)
+                        .append(code).append(SPACE)
+                        .append(ASSIGN).append(resOllirType).append(SPACE)
+                        .append(lhs.getCode()).append(SPACE);
 
-        Type type = TypeUtils.getExprType(node, table);
-        computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
-                .append(rhs.getCode()).append(END_STMT);
+                Type type = TypeUtils.getExprType(node, table);
+                computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
+                        .append(rhs.getCode()).append(END_STMT);
+
+                computation.append("endif: ").append(NL);
+        }
+        else {
+            computation.append(code).append(SPACE)
+                    .append(ASSIGN).append(resOllirType).append(SPACE)
+                    .append(lhs.getCode()).append(SPACE);
+
+            Type type = TypeUtils.getExprType(node, table);
+            computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
+                    .append(rhs.getCode()).append(END_STMT);
+        }
 
         // Store the result of the computation in the HashMap
         OllirExprResult result = new OllirExprResult(code, computation);
@@ -229,6 +252,27 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         return result;
     }
 
+    private OllirExprResult visitNegationExpr(JmmNode jmmNode, Void unused) {
+        System.out.println("visiting negation expr");
+        var child = jmmNode.getJmmChild(0);
+        var visitResult = visit(child);
+
+        StringBuilder computation = new StringBuilder();
+        computation.append(visitResult.getComputation());
+
+        var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
+        var code = OptUtils.getTemp() + type;
+
+        computation.append(code).append(SPACE)
+                .append(ASSIGN).append(type).append(SPACE)
+                .append("!").append(type).append(SPACE)
+                .append(visitResult.getCode()).append(END_STMT);
+
+        var result = new OllirExprResult(code, computation);
+        computedResults.put(jmmNode, result);
+
+        return result;
+    }
 
     private OllirExprResult visitNewObjectExpr(JmmNode jmmNode, Void unused) {
         if (computedResults.containsKey(jmmNode)) {
