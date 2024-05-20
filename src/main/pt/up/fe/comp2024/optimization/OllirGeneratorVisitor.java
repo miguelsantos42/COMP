@@ -46,7 +46,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit(IF_STMT, this::visitIfStmt);
-        addVisit(WHILE_STMT, this::defaultVisit);
+        addVisit(WHILE_STMT, this::visitWhileStmt);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -116,7 +116,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var name = jmmNode.get("name");
 
         code.append(", ").append('"').append(name).append('"')
-            .append(params).append(")").append(type).append(END_STMT);
+                .append(params).append(")").append(type).append(END_STMT);
 
 
         System.out.println("code: " + code);
@@ -149,14 +149,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitClassBody(JmmNode jmmNode, Void unused) {
-            System.out.println("visiting class body");
+        System.out.println("visiting class body");
 
-            StringBuilder code = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
-            for (var child : jmmNode.getChildren())
-                code.append(visit(child));
+        for (var child : jmmNode.getChildren())
+            code.append(visit(child));
 
-            return code.toString();
+        return code.toString();
     }
 
     private String visitMethodCodeBlock(JmmNode jmmNode, Void unused) {
@@ -213,7 +213,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             String typeString = OptUtils.toOllirType(thisType);
 
             code.append(lhs).append(SPACE).append(ASSIGN).append(typeString)
-                .append(SPACE).append(rhs.getCode()).append(END_STMT);
+                    .append(SPACE).append(rhs.getCode()).append(END_STMT);
         }
 
         return code.toString();
@@ -248,22 +248,22 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
-        code.append("while_").append(node.get("id")).append("_start").append(L_BRACKET);
+        code.append("while_condition:").append(NL);
 
         var condition = exprVisitor.visit(node.getJmmChild(0));
+
         code.append(condition.getComputation());
 
-        code.append("if ").append(condition.getCode()).append(" goto ").append("while_").append(node.get("id")).append("_body").append(END_STMT);
+        code.append("if (").append(condition.getCode()).append(") goto while_loop").append(END_STMT);
+        code.append("goto while_end").append(END_STMT);
 
-        code.append("goto ").append("while_").append(node.get("id")).append("_end").append(END_STMT);
+        code.append("while_loop:").append(NL);
 
-        code.append("while_").append(node.get("id")).append("_body").append(L_BRACKET);
+        var block = visit(node.getJmmChild(1));
+        code.append(block);
 
-        code.append(visit(node.getJmmChild(1)));
-
-        code.append("goto ").append("while_").append(node.get("id")).append("_start").append(END_STMT);
-
-        code.append("while_").append(node.get("id")).append("_end").append(NL);
+        code.append("goto while_condition").append(END_STMT);
+        code.append("while_end:").append(NL);
 
         return code.toString();
     }
@@ -368,7 +368,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         for(var field : table.getFields())
             code.append(".field public ").append(field.getName())
-                .append(OptUtils.toOllirType(field.getType())).append(END_STMT);
+                    .append(OptUtils.toOllirType(field.getType())).append(END_STMT);
 
         code.append(NL);
 
