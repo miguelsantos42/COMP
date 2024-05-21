@@ -32,7 +32,7 @@ public class TypeUtils {
             case BOOLEAN_LITERAL, NEGATION_EXPR -> new Type(BOOLEAN_TYPE_NAME, false);
             case ARRAY_EXPR, NEW_ARRAY_EXPR -> new Type(INT_TYPE_NAME, true);
             case NEW_OBJECT_EXPR -> new Type(expr.get("name"), false);
-            case METHOD_CLASS_CALL_EXPR, ASSIGN_STMT, THIS_EXPR -> new Type(expr.get("type"), false);
+            case METHOD_CLASS_CALL_EXPR, ASSIGN_STMT, THIS_EXPR -> new Type(expr.get("type"), expr.get("isArray").equals("true"));
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
     }

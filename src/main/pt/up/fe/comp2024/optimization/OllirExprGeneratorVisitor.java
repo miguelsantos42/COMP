@@ -121,10 +121,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         for(var child : jmmNode.getChildren()) {
             if(!child.equals(jmmNode.getChild(0))) {
-                if(i <= varargsIndex) { //ele entra aqui no array normal, por isso é que nao aparece
-                    if(child.getKind().equals("IntegerLiteral")) {
-                        newArrayExprNode.add(child);
-                    }
+                if(varargsIndex <= i && varargs != null) {
+                    newArrayExprNode.add(child);
                     continue;
                 }
 
@@ -133,13 +131,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                     param.append(", ");
                     param.append(visitResult.getCode());
                     computedResults.put(child, visitResult);
-                } else if (child.getKind().equals("BinaryExpr") || child.getKind().equals("LogicalExpr")) {
-                    var visitResult = visit(child);
-                    param.append(", ");
-                    param.append(visitResult.getCode());
-                    computation.append(visitResult.getComputation());
-                    computedResults.put(child, visitResult);
-                } else if (child.getKind().equals("MethodClassCallExpr")) {
+                } else if (child.getKind().equals("BinaryExpr")
+                        || child.getKind().equals("LogicalExpr")
+                        || child.getKind().equals("MethodClassCallExpr")
+                        || child.getKind().equals("ArrayExpr")) {
                     var visitResult = visit(child);
                     param.append(", ");
                     param.append(visitResult.getCode());
@@ -341,22 +336,22 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), true));
-        var code = OptUtils.getTemp() + type;
+        var tempCode = OptUtils.getTemp() + type;
 
         var length = jmmNode.getNumChildren();
 
         StringBuilder computation = new StringBuilder();
 
-        computation.append(code).append(SPACE)
+        computation.append(tempCode).append(SPACE)
                 .append(ASSIGN).append(type).append(SPACE)
                 .append("new(array, ").append(length).append(".i32)")
                 .append(type).append(END_STMT);
 
         var arrayType = ".array.i32";
-        code = "__varargs_array_" + OptUtils.getTempArray() + arrayType;
+        var code = "__varargs_array_" + OptUtils.getTempArray() + arrayType;
 
         computation.append(code).append(SPACE).append(ASSIGN)
-                    .append(arrayType).append(SPACE).append(code).append(END_STMT);
+                    .append(arrayType).append(SPACE).append(tempCode).append(END_STMT);
 
         for(int i = 0; i < jmmNode.getNumChildren() ; i++) {
             var visitResult = visit(jmmNode.getChild(i));
