@@ -88,31 +88,32 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var params = table.getParameters(jmmNode.get("name"));
         var varargsIndex = -1;
         Symbol varargs = null;
-
-        for (int i = 0 ; i < params.size() ; i++) {
-            var param = params.get(i);
-            if (param.getType().isArray()){
-                arraysLocations.add(i);
-                varargs = param;
-            }
-        }
-
         var newArrayExprNode = new JmmNodeImpl("ArrayExpr");
 
-        if (params.size() != jmmNode.getNumChildren() - 1) {
-            varargsIndex = arraysLocations.get(arraysLocations.size() - 1);
-            newArrayExprNode.put("name", varargs.getName());
-            newArrayExprNode.put("type", "int");
-            newArrayExprNode.put("isArray", "true");
-        }
-        else if (varargs != null){
-            if (jmmNode.getChild( jmmNode.getNumChildren() - 1).get("isArray").equals("false")
-                && jmmNode.getChild(jmmNode.getNumChildren() - 1).get("type").equals("int")) {
-                varargsIndex = arraysLocations.get(arraysLocations.size() - 1);
+        if (params != null) {
+
+            for (int i = 0; i < params.size(); i++) {
+                var param = params.get(i);
+                if (param.getType().isArray()) {
+                    arraysLocations.add(i);
+                    varargs = param;
+                }
             }
-            newArrayExprNode.put("name", varargs.getName());
-            newArrayExprNode.put("type", "int");
-            newArrayExprNode.put("isArray", "true");
+
+            if (params.size() != jmmNode.getNumChildren() - 1) {
+                varargsIndex = arraysLocations.get(arraysLocations.size() - 1);
+                newArrayExprNode.put("name", varargs.getName());
+                newArrayExprNode.put("type", "int");
+                newArrayExprNode.put("isArray", "true");
+            } else if (varargs != null) {
+                if (jmmNode.getChild(jmmNode.getNumChildren() - 1).get("isArray").equals("false")
+                        && jmmNode.getChild(jmmNode.getNumChildren() - 1).get("type").equals("int")) {
+                    varargsIndex = arraysLocations.get(arraysLocations.size() - 1);
+                }
+                newArrayExprNode.put("name", varargs.getName());
+                newArrayExprNode.put("type", "int");
+                newArrayExprNode.put("isArray", "true");
+            }
         }
 
 
