@@ -121,8 +121,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         for(var child : jmmNode.getChildren()) {
             if(!child.equals(jmmNode.getChild(0))) {
-                if(i <= varargsIndex) {
-                    newArrayExprNode.add(child);
+                if(i <= varargsIndex) { //ele entra aqui no array normal, por isso é que nao aparece
+                    if(child.getKind().equals("IntegerLiteral")) {
+                        newArrayExprNode.add(child);
+                    }
                     continue;
                 }
 
