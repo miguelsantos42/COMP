@@ -67,7 +67,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var childImport = jmmNode.getJmmChild(0);
 
         if(childImport.getKind().equals("ThisExpr")) {
-            call_name = "this.";
+            call_name = "this";
+            class_name = "";
         }
         else if(childImport.getKind().equals("VarRefExpr")) {
             var visitResult = visit(childImport);
