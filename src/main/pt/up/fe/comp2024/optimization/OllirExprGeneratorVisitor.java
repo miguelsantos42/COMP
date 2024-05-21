@@ -1,12 +1,15 @@
 package pt.up.fe.comp2024.optimization;
 
-import org.specs.comp.ollir.Ollir;
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -40,6 +43,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(PARENTHESIS_EXPR, this::visitParenthesisExpr);
         addVisit(THIS_EXPR, this::visitThisExpr);
         addVisit(NEGATION_EXPR, this::visitNegationExpr);
+        addVisit(ARRAY_EXPR, this::visitArrayExpr);
+        addVisit(ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
+        addVisit(NEW_ARRAY_EXPR, this::visitNewArrayExpr);
+        addVisit(ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -77,9 +84,48 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             call_name = visitResult.getCode();
         }
 
+        var arraysLocations = new ArrayList<Integer>();
+        var params = table.getParameters(jmmNode.get("name"));
+        var varargsIndex = -1;
+        Symbol varargs = null;
+
+        for (int i = 0 ; i < params.size() ; i++) {
+            var param = params.get(i);
+            if (param.getType().isArray()){
+                arraysLocations.add(i);
+                varargs = param;
+            }
+        }
+
+        var newArrayExprNode = new JmmNodeImpl("ArrayExpr");
+
+        if (params.size() != jmmNode.getNumChildren() - 1) {
+            varargsIndex = arraysLocations.get(arraysLocations.size() - 1);
+            newArrayExprNode.put("name", varargs.getName());
+            newArrayExprNode.put("type", "int");
+            newArrayExprNode.put("isArray", "true");
+        }
+        else if (varargs != null){
+            if (jmmNode.getChild( jmmNode.getNumChildren() - 1).get("isArray").equals("false")
+                && jmmNode.getChild(jmmNode.getNumChildren() - 1).get("type").equals("int")) {
+                varargsIndex = arraysLocations.get(arraysLocations.size() - 1);
+            }
+            newArrayExprNode.put("name", varargs.getName());
+            newArrayExprNode.put("type", "int");
+            newArrayExprNode.put("isArray", "true");
+        }
+
+
         StringBuilder param = new StringBuilder();
+        int i = -1;
+
         for(var child : jmmNode.getChildren()) {
             if(!child.equals(jmmNode.getChild(0))) {
+                if(i <= varargsIndex) {
+                    newArrayExprNode.add(child);
+                    continue;
+                }
+
                 if (child.getKind().equals("VarRefExpr")) {
                     var visitResult = visit(child);
                     param.append(", ");
@@ -103,6 +149,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                     param.append(OptUtils.toOllirType(TypeUtils.getExprType(child, table)));
                 }
             }
+            i += 1;
+        }
+
+        if(newArrayExprNode.getNumChildren() > 0) {
+            var visitResult = visit(newArrayExprNode);
+            param.append(", ");
+            param.append(visitResult.getCode());
+            computation.append(visitResult.getComputation());
         }
 
         param.append(")");
@@ -217,7 +271,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         return result;
     }
 
-
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
         // Check if the computation for the current node has already been performed
         if (computedResults.containsKey(node)) {
@@ -253,6 +306,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     }
 
     private OllirExprResult visitNegationExpr(JmmNode jmmNode, Void unused) {
+        if (computedResults.containsKey(jmmNode)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(jmmNode);
+        }
+
         System.out.println("visiting negation expr");
         var child = jmmNode.getJmmChild(0);
         var visitResult = visit(child);
@@ -267,6 +325,125 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 .append(ASSIGN).append(type).append(SPACE)
                 .append("!").append(type).append(SPACE)
                 .append(visitResult.getCode()).append(END_STMT);
+
+        var result = new OllirExprResult(code, computation);
+        computedResults.put(jmmNode, result);
+
+        return result;
+    }
+
+    private OllirExprResult visitArrayExpr(JmmNode jmmNode, Void unused) {
+        if (computedResults.containsKey(jmmNode)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(jmmNode);
+        }
+
+        var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), true));
+        var code = OptUtils.getTemp() + type;
+
+        var length = jmmNode.getNumChildren();
+
+        StringBuilder computation = new StringBuilder();
+
+        computation.append(code).append(SPACE)
+                .append(ASSIGN).append(type).append(SPACE)
+                .append("new(array, ").append(length).append(".i32)")
+                .append(type).append(END_STMT);
+
+        var arrayType = ".array.i32";
+        code = "__varargs_array_" + OptUtils.getTempArray() + arrayType;
+
+        computation.append(code).append(SPACE).append(ASSIGN)
+                    .append(arrayType).append(SPACE).append(code).append(END_STMT);
+
+        for(int i = 0; i < jmmNode.getNumChildren() ; i++) {
+            var visitResult = visit(jmmNode.getChild(i));
+            computation.append(visitResult.getComputation());
+
+            computation.append(code).append("[")
+                    .append(i).append(".i32].i32")
+                    .append(SPACE).append(ASSIGN).append(".i32").append(SPACE)
+                    .append(visitResult.getCode()).append(END_STMT);
+        }
+
+        OllirExprResult result = new OllirExprResult(code, computation);
+        computedResults.put(jmmNode, result);
+
+        return result;
+    }
+
+    private OllirExprResult visitArrayAccessExpr(JmmNode jmmNode, Void unused) {
+        if (computedResults.containsKey(jmmNode)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(jmmNode);
+        }
+
+        System.out.println("visiting array access expr");
+        var array = visit(jmmNode.getJmmChild(0));
+        var index = visit(jmmNode.getJmmChild(1));
+
+        StringBuilder computation = new StringBuilder();
+        computation.append(array.getComputation());
+        computation.append(index.getComputation());
+
+        var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
+        var code = OptUtils.getTemp() + type;
+
+        computation.append(code).append(SPACE)
+                .append(ASSIGN).append(type).append(SPACE)
+                .append(jmmNode.getJmmChild(0).get("name")).append("[").append(index.getCode()).append("]").append(type).append(END_STMT);
+
+        var result = new OllirExprResult(code, computation);
+        computedResults.put(jmmNode, result);
+
+        return result;
+    }
+
+    private OllirExprResult visitNewArrayExpr(JmmNode jmmNode, Void unused) {
+        if (computedResults.containsKey(jmmNode)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(jmmNode);
+        }
+
+        System.out.println("visiting new array expr");
+        var size = visit(jmmNode.getJmmChild(0));
+        var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), true));
+
+        StringBuilder computation = new StringBuilder();
+        computation.append(size.getComputation());
+
+        var code = OptUtils.getTemp() + type;
+        computation.append(code).append(SPACE)
+                .append(ASSIGN).append(type).append(SPACE)
+                .append("new").append("(array, ")
+                .append(size.getCode()).append(")")
+                .append(type).append(END_STMT);
+
+        var result = new OllirExprResult(code, computation);
+        computedResults.put(jmmNode, result);
+
+        return result;
+    }
+
+    private OllirExprResult visitArrayLengthExpr(JmmNode jmmNode, Void unused) {
+        if (computedResults.containsKey(jmmNode)) {
+            // If it has, return the result of the previous computation
+            return computedResults.get(jmmNode);
+        }
+
+        System.out.println("visiting array length expr");
+        var array = visit(jmmNode.getJmmChild(0));
+
+        StringBuilder computation = new StringBuilder();
+        computation.append(array.getComputation());
+
+        var type = OptUtils.toOllirType(new Type(jmmNode.get("type"), false));
+        var code = OptUtils.getTemp() + type;
+
+        computation.append(code).append(SPACE)
+                .append(ASSIGN).append(type).append(SPACE)
+                .append("arraylength(").append(array.getCode()).append(")")
+                .append(type).append(END_STMT);
 
         var result = new OllirExprResult(code, computation);
         computedResults.put(jmmNode, result);

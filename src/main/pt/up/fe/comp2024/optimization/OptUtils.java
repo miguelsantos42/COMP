@@ -6,17 +6,29 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 public class OptUtils {
     private static int tempNumber = -1;
 
+    private static int tempArrayNumber = -1;
+
     public static String getTemp() {
         return getTemp("tmp");
+    }
+
+    public static String getTempArray() {
+        return String.valueOf(getNextTempArrayNum());
     }
 
     public static String getTemp(String prefix) {
         return prefix + getNextTempNum();
     }
 
+
     public static int getNextTempNum() {
         tempNumber += 1;
         return tempNumber;
+    }
+
+    public static int getNextTempArrayNum() {
+        tempArrayNumber += 1;
+        return tempArrayNumber;
     }
 
     public static String toOllirType(JmmNode typeNode) {

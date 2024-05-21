@@ -45,6 +45,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(PARAM, this::visitParam);
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
+        addVisit(ARRAY_ASSIGN_STMT, this::visitArrayAssignStmt);
         addVisit(IF_STMT, this::visitIfStmt);
         addVisit(WHILE_STMT, this::visitWhileStmt);
         setDefaultVisit(this::defaultVisit);
@@ -61,7 +62,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder params = new StringBuilder();
         // params
-
         for (int i = 1; i < jmmNode.getNumChildren(); i++){
             var expr = exprVisitor.visit(jmmNode.getJmmChild(i));
             code.append(expr.getComputation());
@@ -215,6 +215,24 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append(lhs).append(SPACE).append(ASSIGN).append(typeString)
                     .append(SPACE).append(rhs.getCode()).append(END_STMT);
         }
+
+        return code.toString();
+    }
+
+    private String visitArrayAssignStmt(JmmNode node, Void unused) {
+        System.out.println("visiting array assign stmt");
+
+        StringBuilder code = new StringBuilder();
+
+        var accessIndex = exprVisitor.visit(node.getJmmChild(0));
+
+        var rhs = exprVisitor.visit(node.getJmmChild(1));
+
+        code.append(rhs.getComputation());
+
+        code.append(node.get("name")).append("[").append(accessIndex.getCode()).append("].i32")
+                .append(SPACE).append(ASSIGN).append(".i32").append(SPACE)
+                .append(rhs.getCode()).append(END_STMT);
 
         return code.toString();
     }
