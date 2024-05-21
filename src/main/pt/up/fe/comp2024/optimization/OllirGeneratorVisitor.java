@@ -89,7 +89,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
                 if (isSuper) type = ".V";
 
-                //name = "this." + table.getClassName();
+                name = "this." + table.getClassName();
             }
             else if(child.getKind().equals("VarRefExpr")) {
                 var visitResult = exprVisitor.visit(child);
