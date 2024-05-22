@@ -4,7 +4,6 @@ import org.specs.comp.ollir.*;
 import org.specs.comp.ollir.tree.TreeNode;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
-import pt.up.fe.comp2024.optimization.OptUtils;
 import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
@@ -537,16 +536,13 @@ public class JasminGenerator {
 
     private String generateGoToInstruction(GotoInstruction gotoInstruction) {
         System.out.println("GoToInstruction: " + gotoInstruction);
-        var code = new StringBuilder();
 
-        code.append("goto ").append(gotoInstruction.getLabel()).append(NL);
+        return "goto " + gotoInstruction.getLabel() + NL +
 
-        // ter cuidado para o caso do if chegar aos 2 digitos
-        code.append("if_body_")
-                .append(gotoInstruction.getLabel().charAt(gotoInstruction.getLabel().length() - 1))
-                .append(":").append(NL);
-
-        return code.toString();
+                // ter cuidado para o caso do if chegar aos 2 digitos
+                "if_body_" +
+                gotoInstruction.getLabel().charAt(gotoInstruction.getLabel().length() - 1) +
+                ":" + NL;
     }
 
     private String getReturnType(String returnType) {

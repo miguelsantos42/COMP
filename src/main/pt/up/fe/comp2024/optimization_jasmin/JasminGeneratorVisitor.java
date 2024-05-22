@@ -11,17 +11,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JasminGeneratorVisitor extends AJmmVisitor<Void, String> {
-
     private static final String NL = "\n";
     private static final String TAB = "   ";
-
     private final SymbolTable table;
-
     private JasminExprGeneratorVisitor exprGenerator;
-
     private String currentMethod;
     private int nextRegister;
-
     private Map<String, Integer> currentRegisters;
 
     public JasminGeneratorVisitor(SymbolTable table) {

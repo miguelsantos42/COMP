@@ -28,7 +28,7 @@ public class TypeUtils {
         return switch (kind) {
             case BINARY_EXPR, LOGICAL_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
-            case INTEGER_LITERAL, ARRAY_ACCESS_EXPR -> new Type(INT_TYPE_NAME, false);
+            case INTEGER_LITERAL, ARRAY_ACCESS_EXPR, ARRAY_LENGTH_EXPR -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL, NEGATION_EXPR -> new Type(BOOLEAN_TYPE_NAME, false);
             case ARRAY_EXPR, NEW_ARRAY_EXPR -> new Type(INT_TYPE_NAME, true);
             case NEW_OBJECT_EXPR -> new Type(expr.get("name"), false);
