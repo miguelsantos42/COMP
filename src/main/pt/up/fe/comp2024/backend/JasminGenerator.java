@@ -177,15 +177,13 @@ public class JasminGenerator {
                 finalCode.append(instCode);
         }
 
-//        if(method.getVarTable().containsKey("this")){
-//            stackLimit += 1;
-//        }
-
-        if(method.getReturnType().toString().equals("VOID")){
-            stackLimit -= 1;
+        if(!method.getReturnType().toString().equals("VOID")){
+            if(stackLimit < 1) {
+                stackLimit = 1;
+            }
         }
 
-        code.append(TAB).append(".limit stack ").append(stackLimit + 1).append(NL);
+        code.append(TAB).append(".limit stack ").append(stackLimit).append(NL);
         code.append(TAB).append(".limit locals ").append(localsLimit + 1).append(NL);
 
         code.append(finalCode);
@@ -203,7 +201,7 @@ public class JasminGenerator {
         System.out.println("\n\nAssign: " + assign);
         var code = new StringBuilder();
 
-        if(stackLimit<1) {
+        if(stackLimit < 1) {
             stackLimit = 1;
         }
 
@@ -321,18 +319,18 @@ public class JasminGenerator {
     private String generatePutField(PutFieldInstruction putFieldInstruction) {
         System.out.println("PutField: " + putFieldInstruction);
 
-
-        if(stackLimit<2) {
+        if(stackLimit < 2) {
             stackLimit = 2;
         }
+
         var code = new StringBuilder();
 
         var className = ollirResult.getOllirClass().getClassName();
 
         if(putFieldInstruction.getOperands().get(1).getType().toString().contains("OBJECTREF")){
             for(var imp : ollirResult.getOllirClass().getImports()){
-                if(imp.toString().contains(putFieldInstruction.getOperands().get(1).getType().toString().substring(putFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, putFieldInstruction.getOperands().get(1).getType().toString().indexOf(")")))){
-                    var split = imp.toString().split("\\.");
+                if(imp.contains(putFieldInstruction.getOperands().get(1).getType().toString().substring(putFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, putFieldInstruction.getOperands().get(1).getType().toString().indexOf(")")))){
+                    var split = imp.split("\\.");
                     className = String.join(".", split);
                 }
             }
@@ -366,21 +364,17 @@ public class JasminGenerator {
         var imports = this.ollirResult.getOllirClass().getImports();
         if(callInstruction.getCaller().getType().toString().contains("OBJECTREF")) {
             for (var imp : imports) {
-                if (imp.toString().contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'))) && !imp.toString().contains(ollirResult.getOllirClass().getClassName())) {
-                    var split = imp.toString().split("\\.");
+                if (imp.contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'))) && !imp.toString().contains(ollirResult.getOllirClass().getClassName())) {
+                    var split = imp.split("\\.");
                     className = String.join(".", split);
                 }
             }
         }
 
-
-        //code.append(callInstruction.getOperands());
-
         // detect wether its necessary a invokespecial or a invokevirtual
 
         String callerName = callInstruction.getCaller().toString().substring(callInstruction.getCaller().toString().indexOf(' ') + 1, callInstruction.getCaller().toString().indexOf('.'));
         var params = generateParams((ArrayList<Element>) callInstruction.getArguments());
-
         if (callInstruction.getInvocationType().toString().equals("invokevirtual")) {
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
 
@@ -393,7 +387,7 @@ public class JasminGenerator {
             }
 
             int paramCount = callInstruction.getArguments().size();
-            if(paramCount > stackLimit) stackLimit = paramCount;
+            if(paramCount > stackLimit) stackLimit = paramCount + 1;
 
             for (var param : callInstruction.getArguments()) {
 
@@ -416,7 +410,6 @@ public class JasminGenerator {
             code.append("(").append(params).append(")").append(returnType).append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("invokespecial")) {
-
             if(callerName.equals("this")) {
                 code.append("aload_0").append(NL);
             }
@@ -427,11 +420,9 @@ public class JasminGenerator {
             }
 
             code.append("invokespecial ").append(className).append(".").append("<init>()V").append(NL);
-            code.append("pop").append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("NEW")) {
             code.append("new ").append(className).append(NL);
-            code.append("dup").append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("invokestatic")){
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
