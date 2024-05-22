@@ -36,6 +36,7 @@ public class JasminExprGeneratorVisitor extends PostorderJmmVisitor<StringBuilde
 
         // get register
         var reg = currentRegisters.get(name);
+
         SpecsCheck.checkNotNull(reg, () -> "No register mapped for variable '" + name + "'");
 
         code.append("iload " + reg + NL);

@@ -32,6 +32,9 @@ public class JasminGenerator {
     Method currentMethod;
 
     private final FunctionClassMap<TreeNode, String> generators;
+    private int stackLimit = 0;
+    private int localsLimit = 0;
+
 
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
@@ -126,6 +129,8 @@ public class JasminGenerator {
 
     private String generateMethod(Method method) {
 
+        stackLimit = 0;
+        localsLimit = 0;
         // set method
         currentMethod = method;
         System.out.println("Method: " + method.getMethodName());
@@ -151,9 +156,14 @@ public class JasminGenerator {
 
         code.append("\n.method ").append(modifier).append(methodName).append("(").append(params).append(")").append(returnType).append(NL);
 
+
+
+
+
         // Add limits
-        code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
+
+
+        StringBuilder finalCode = new StringBuilder();
 
         for (var inst : method.getInstructions()) {
             System.out.println("Instruction: " + inst);
@@ -164,8 +174,21 @@ public class JasminGenerator {
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             if (!generatedCode.isEmpty())
-                code.append(instCode);
+                finalCode.append(instCode);
         }
+
+//        if(method.getVarTable().containsKey("this")){
+//            stackLimit += 1;
+//        }
+
+        if(method.getReturnType().toString().equals("VOID")){
+            stackLimit -= 1;
+        }
+
+        code.append(TAB).append(".limit stack ").append(stackLimit + 1).append(NL);
+        code.append(TAB).append(".limit locals ").append(localsLimit + 1).append(NL);
+
+        code.append(finalCode);
 
         code.append(".end method\n");
 
@@ -180,8 +203,17 @@ public class JasminGenerator {
         System.out.println("\n\nAssign: " + assign);
         var code = new StringBuilder();
 
+        if(stackLimit<1) {
+            stackLimit = 1;
+        }
+
         // generate code for loading what's on the right
         var rhs = generators.apply(assign.getRhs());
+        if(assign.getRhs().toString().contains("BINARYOPER")){
+            if(stackLimit < 2) {
+                stackLimit = 2;
+            }
+        }
         System.out.println("RHS: " + rhs);
 
         code.append(rhs);
@@ -207,8 +239,10 @@ public class JasminGenerator {
             String var = assign.getRhs().toString().substring(assign.getRhs().toString().lastIndexOf(' ') + 1, assign.getRhs().toString().indexOf('.'));
             var loadReg = currentMethod.getVarTable().get(var).getVirtualReg();
 
+
             String typeOfAssign = assign.getRhs().toString().substring(assign.getRhs().toString().lastIndexOf('.') + 1);
             var loadInstruction = getLoadInstruction(typeOfAssign, loadReg);
+            this.localsLimit = loadReg;
 
             if(!var.contains("tmp")) {
                 code.append(loadInstruction).append(loadReg).append(NL);
@@ -216,6 +250,7 @@ public class JasminGenerator {
         }
 
         var storeInstruction = getStoreInstruction(operand.getType().toString(), reg);
+        this.localsLimit = reg;
 
         code.append(storeInstruction).append(reg).append(NL);
 
@@ -285,6 +320,11 @@ public class JasminGenerator {
 
     private String generatePutField(PutFieldInstruction putFieldInstruction) {
         System.out.println("PutField: " + putFieldInstruction);
+
+
+        if(stackLimit<2) {
+            stackLimit = 2;
+        }
         var code = new StringBuilder();
 
         var className = ollirResult.getOllirClass().getClassName();
@@ -352,7 +392,11 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
+            int paramCount = callInstruction.getArguments().size();
+            if(paramCount > stackLimit) stackLimit = paramCount;
+
             for (var param : callInstruction.getArguments()) {
+
                 if(param.toString().contains("LiteralElement")) {
                     code.append(generators.apply(param));
                     continue;
@@ -387,7 +431,6 @@ public class JasminGenerator {
         }
         else if (callInstruction.getInvocationType().toString().equals("NEW")) {
             code.append("new ").append(className).append(NL);
-
             code.append("dup").append(NL);
         }
         else if (callInstruction.getInvocationType().toString().equals("invokestatic")){
@@ -429,7 +472,11 @@ public class JasminGenerator {
         if (returnInst.getOperand() == null) {
             code.append("return").append(NL);
         } else {
-            code.append(generators.apply(returnInst.getOperand()));
+            var visit = generators.apply(returnInst.getOperand());
+            if(visit.contains("load")){
+                this.localsLimit = Integer.parseInt(String.valueOf(visit.charAt(visit.length() - 2) ));
+            }
+            code.append(visit);
             var type = switch (returnInst.getOperand().getType().toString()) {
                 case "INT32", "BOOLEAN" -> "i";
                 case "STRING" -> "a";
