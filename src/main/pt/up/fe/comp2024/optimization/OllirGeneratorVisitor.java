@@ -246,17 +246,24 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var trueBlock = visit(node.getJmmChild(1));
         var elseBlock = visit(node.getJmmChild(2));
 
-        code.append("if (").append(condition.getCode()).append(") goto else").append(END_STMT);
+        code.append(condition.getComputation());
+
+        var ifNumber = OptUtils.getNextTempIfNum();
+
+        code.append("if (").append(condition.getCode())
+            .append(") goto if_body_").append(ifNumber).append(END_STMT);
 
         code.append(elseBlock);
 
-        code.append("goto endif").append(END_STMT);
+        code.append("goto endif_").append(ifNumber).append(END_STMT);
 
-        code.append("else:").append(NL);
+        code.append("if_body_").append(ifNumber)
+                .append(":").append(NL);
 
         code.append(trueBlock);
 
-        code.append("endif:").append(NL);
+        code.append("endif_").append(ifNumber)
+                .append(":").append(NL);
 
         return code.toString();
     }
@@ -322,7 +329,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
-
     private String visitMethodDecl(JmmNode node, Void unused) {
         System.out.println("visiting method decl");
 
@@ -331,11 +337,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if (NodeUtils.getBooleanAttribute(node, "isPublic", "true"))
             code.append("public ");
 
-
         // name
         code.append(node.get("name"));
         var afterParam = 0;
-
 
         // type
         String retType;
@@ -383,7 +387,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append(L_BRACKET).append(NL);
 
-
         for(var field : table.getFields())
             code.append(".field public ").append(field.getName())
                     .append(OptUtils.toOllirType(field.getType())).append(END_STMT);
@@ -410,7 +413,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 "invokespecial(this, \"<init>\").V;\n" +
                 "}\n";
     }
-
 
     private String visitProgram(JmmNode node, Void unused) {
 

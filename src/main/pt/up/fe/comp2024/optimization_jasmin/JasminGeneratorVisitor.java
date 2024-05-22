@@ -39,7 +39,7 @@ public class JasminGeneratorVisitor extends AJmmVisitor<Void, String> {
         // might no longer have the equivalent enums in Kind class.
         addVisit("Program", this::visitProgram);
         addVisit("ClassDecl", this::visitClassDecl);
-        //addVisit("MethodDecl", this::visitMethodDecl);
+        addVisit("MethodDecl", this::visitMethodDecl);
         addVisit("AssignStmt", this::visitAssignStmt);
         addVisit("ReturnStmt", this::visitReturnStmt);
     }
@@ -83,7 +83,7 @@ public class JasminGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
-/*    private String visitMethodDecl(JmmNode methodDecl, Void unused) {
+    private String visitMethodDecl(JmmNode methodDecl, Void unused) {
         var methodName = methodDecl.get("name");
 
 
@@ -135,7 +135,7 @@ public class JasminGeneratorVisitor extends AJmmVisitor<Void, String> {
         currentMethod = null;
 
         return code.toString();
-    }*/
+    }
 
     private String visitAssignStmt(JmmNode assignStmt, Void unused) {
         var code = new StringBuilder();

@@ -4,6 +4,7 @@ import org.specs.comp.ollir.*;
 import org.specs.comp.ollir.tree.TreeNode;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
+import pt.up.fe.comp2024.optimization.OptUtils;
 import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
@@ -19,16 +20,11 @@ import java.util.stream.Collectors;
  * One JasminGenerator instance per OllirResult.
  */
 public class JasminGenerator {
-
     private static final String NL = "\n";
     private static final String TAB = "   ";
-
     private final OllirResult ollirResult;
-
     List<Report> reports;
-
     String code;
-
     Method currentMethod;
 
     private final FunctionClassMap<TreeNode, String> generators;
@@ -38,7 +34,6 @@ public class JasminGenerator {
 
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
-
         reports = new ArrayList<>();
         code = null;
         currentMethod = null;
@@ -55,6 +50,8 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCondInstruction);
+        generators.put(GotoInstruction.class, this::generateGoToInstruction);
     }
 
 
@@ -63,7 +60,6 @@ public class JasminGenerator {
     }
 
     public String build() {
-
         // This way, build is idempotent
         if (code == null) {
             code = generators.apply(ollirResult.getOllirClass());
@@ -74,7 +70,6 @@ public class JasminGenerator {
 
 
     private String generateClassUnit(ClassUnit classUnit) {
-
         var code = new StringBuilder();
 
         // generate class name
@@ -87,8 +82,8 @@ public class JasminGenerator {
         }
         else {
             for(var imp : ollirResult.getOllirClass().getImports()){
-                if(imp.toString().contains(classUnit.getSuperClass())){
-                    var split = imp.toString().split("\\.");
+                if(imp.contains(classUnit.getSuperClass())){
+                    var split = imp.split("\\.");
                     superClass = String.join(".", split);
                 }
             }
@@ -155,12 +150,6 @@ public class JasminGenerator {
 
 
         code.append("\n.method ").append(modifier).append(methodName).append("(").append(params).append(")").append(returnType).append(NL);
-
-
-
-
-
-        // Add limits
 
 
         StringBuilder finalCode = new StringBuilder();
@@ -278,16 +267,26 @@ public class JasminGenerator {
         code.append(generators.apply(binaryOp.getLeftOperand()));
         code.append(generators.apply(binaryOp.getRightOperand()));
 
-        // apply operation
-        var op = switch (binaryOp.getOperation().getOpType()) {
-            case ADD -> "iadd";
-            case MUL -> "imul";
-            case SUB -> "isub";
-            case DIV -> "idiv";
-            default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
-        };
 
-        code.append(op).append(NL);
+        if (binaryOp.getOperation().getOpType().toString().equals("LTH")){
+
+            var reg1 = this.currentMethod.getVarTable().get(binaryOp.getLeftOperand().toString().substring(binaryOp.getLeftOperand().toString().lastIndexOf(' ') + 1, binaryOp.getLeftOperand().toString().indexOf('.'))).getVirtualReg();
+            var reg2 = this.currentMethod.getVarTable().get(binaryOp.getRightOperand().toString().substring(binaryOp.getRightOperand().toString().lastIndexOf(' ') + 1, binaryOp.getRightOperand().toString().indexOf('.'))).getVirtualReg();
+            code.append("iload_").append(reg1).append(NL);
+            code.append("iload_").append(reg2).append(NL);
+            code.append("isub").append(NL);
+        }
+        else {
+            // apply operation
+            var op = switch (binaryOp.getOperation().getOpType()) {
+                case ADD -> "iadd";
+                case MUL -> "imul";
+                case SUB -> "isub";
+                case DIV -> "idiv";
+                default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
+            };
+            code.append(op).append(NL);
+        }
 
         return code.toString();
     }
@@ -300,8 +299,8 @@ public class JasminGenerator {
 
         if(getFieldInstruction.getOperands().get(1).getType().toString().contains("OBJECTREF")){
             for(var imp : ollirResult.getOllirClass().getImports()){
-                if(imp.toString().contains(getFieldInstruction.getOperands().get(1).getType().toString().substring(getFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, getFieldInstruction.getOperands().get(1).getType().toString().indexOf(")")))){
-                    var split = imp.toString().split("\\.");
+                if(imp.contains(getFieldInstruction.getOperands().get(1).getType().toString().substring(getFieldInstruction.getOperands().get(1).getType().toString().indexOf("(") +1, getFieldInstruction.getOperands().get(1).getType().toString().indexOf(")")))){
+                    var split = imp.split("\\.");
                     className = String.join(".", split);
                 }
             }
@@ -364,7 +363,7 @@ public class JasminGenerator {
         var imports = this.ollirResult.getOllirClass().getImports();
         if(callInstruction.getCaller().getType().toString().contains("OBJECTREF")) {
             for (var imp : imports) {
-                if (imp.contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'))) && !imp.toString().contains(ollirResult.getOllirClass().getClassName())) {
+                if (imp.contains(callInstruction.getCaller().getType().toString().substring(callInstruction.getCaller().getType().toString().indexOf('(') + 1, callInstruction.getCaller().getType().toString().indexOf(')'))) && !imp.contains(ollirResult.getOllirClass().getClassName())) {
                     var split = imp.split("\\.");
                     className = String.join(".", split);
                 }
@@ -390,7 +389,6 @@ public class JasminGenerator {
             if(paramCount > stackLimit) stackLimit = paramCount + 1;
 
             for (var param : callInstruction.getArguments()) {
-
                 if(param.toString().contains("LiteralElement")) {
                     code.append(generators.apply(param));
                     continue;
@@ -399,7 +397,6 @@ public class JasminGenerator {
                 var reg = currentMethod.getVarTable().get(paramName).getVirtualReg();
 
                 var instruction = getLoadInstruction(param.getType().toString(), reg);
-
                 code.append(instruction).append(reg).append(NL);
             }
 
@@ -470,7 +467,6 @@ public class JasminGenerator {
             code.append(visit);
             var type = switch (returnInst.getOperand().getType().toString()) {
                 case "INT32", "BOOLEAN" -> "i";
-                case "STRING" -> "a";
                 default -> "a";
             };
             code.append(type).append("return").append(NL);
@@ -488,8 +484,8 @@ public class JasminGenerator {
                 paramS = param.getType().toString().substring(param.getType().toString().indexOf('(') + 1, param.getType().toString().indexOf(')'));
 
                 for (var imp : imports) {
-                    if (imp.toString().contains(paramS)) {
-                        var split = imp.toString().split("\\.");
+                    if (imp.contains(paramS)) {
+                        var split = imp.split("\\.");
                         paramS = String.join(".", split);
                     }
                 }
@@ -509,14 +505,58 @@ public class JasminGenerator {
         return params;
     }
 
+    private String generateSingleOpCondInstruction(SingleOpCondInstruction singleOpCondInstruction) {
+        System.out.println("SingleOpCondInstruction: " + singleOpCondInstruction);
+        var code = new StringBuilder();
+
+        if(stackLimit < 1) {
+            stackLimit = 1;
+        }
+
+        for (var inst : this.currentMethod.getInstructions()) {
+            if (inst.toString().contains("LTH")) {
+                var ifNumber = singleOpCondInstruction.getLabel().substring(singleOpCondInstruction.getLabel().indexOf('_') + 1);
+                code.append("iflt ").append("cmp_lt_").append(ifNumber).append("_true").append(NL);
+                code.append("iconst_0").append(NL);
+                code.append("goto cpm_lt_").append(ifNumber).append("_end").append(NL);
+                code.append("cmp_lt_").append(ifNumber).append("_true:").append(NL);
+                code.append("iconst_1").append(NL);
+                code.append("cmp_lt_").append(ifNumber).append("_end:").append(NL);
+
+                var regNum = this.currentMethod.getVarTable().size();
+
+                code.append("istore_").append(regNum + 1).append(NL);
+                code.append("iload_").append(regNum + 1).append(NL);
+                code.append("ifne ").append(singleOpCondInstruction.getLabel()).append(NL);
+                break;
+            }
+        }
+
+        return code.toString();
+    }
+
+    private String generateGoToInstruction(GotoInstruction gotoInstruction) {
+        System.out.println("GoToInstruction: " + gotoInstruction);
+        var code = new StringBuilder();
+
+        code.append("goto ").append(gotoInstruction.getLabel()).append(NL);
+
+        // ter cuidado para o caso do if chegar aos 2 digitos
+        code.append("if_body_")
+                .append(gotoInstruction.getLabel().charAt(gotoInstruction.getLabel().length() - 1))
+                .append(":").append(NL);
+
+        return code.toString();
+    }
+
     private String getReturnType(String returnType) {
         var imports = this.ollirResult.getOllirClass().getImports();
         if(returnType.contains("OBJECTREF")) {
             returnType = returnType.substring(returnType.indexOf('(') + 1, returnType.indexOf(')'));
 
             for (var imp : imports) {
-                if (imp.toString().contains(returnType)) {
-                    var split = imp.toString().split("\\.");
+                if (imp.contains(returnType)) {
+                    var split = imp.split("\\.");
                     // Join using "/" except for the last part
                     returnType = String.join("/", Arrays.copyOf(split, split.length - 1))
                             + "/" + split[split.length - 1];
@@ -542,8 +582,8 @@ public class JasminGenerator {
             fieldInstructionType = fieldInstructionType.substring(fieldInstructionType.indexOf('(') + 1, fieldInstructionType.indexOf(')'));
 
             for (var imp : imports) {
-                if (imp.toString().contains(fieldInstructionType)) {
-                    var split = imp.toString().split("\\.");
+                if (imp.contains(fieldInstructionType)) {
+                    var split = imp.split("\\.");
                     fieldInstructionType = String.join(".", split);
                 }
             }

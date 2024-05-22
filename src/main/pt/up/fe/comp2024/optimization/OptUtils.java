@@ -5,8 +5,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 
 public class OptUtils {
     private static int tempNumber = -1;
-
     private static int tempArrayNumber = -1;
+    private static int tempIfNumber = -1;
 
     public static String getTemp() {
         return getTemp("tmp");
@@ -14,6 +14,10 @@ public class OptUtils {
 
     public static String getTempArray() {
         return String.valueOf(getNextTempArrayNum());
+    }
+
+    public static String getTempIf() {
+        return String.valueOf(getNextTempIfNum());
     }
 
     public static String getTemp(String prefix) {
@@ -24,6 +28,11 @@ public class OptUtils {
     public static int getNextTempNum() {
         tempNumber += 1;
         return tempNumber;
+    }
+
+    public static int getNextTempIfNum() {
+        tempIfNumber += 1;
+        return tempIfNumber;
     }
 
     public static int getNextTempArrayNum() {
