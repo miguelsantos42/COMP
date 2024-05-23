@@ -11,6 +11,7 @@ import pt.up.fe.specs.util.utilities.StringLines;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +51,7 @@ public class JasminGenerator {
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(SingleOpCondInstruction.class, this::generateSingleOpCondInstruction);
+        generators.put(OpCondInstruction.class, this::generateOpCondInstruction);
         generators.put(GotoInstruction.class, this::generateGoToInstruction);
     }
 
@@ -156,6 +158,13 @@ public class JasminGenerator {
         for (var inst : method.getInstructions()) {
             System.out.println("Instruction: " + inst);
 
+            for (Map.Entry<String, Instruction> label : method.getLabels().entrySet()) {
+                if (label.getValue().equals(inst)) {
+                    finalCode.append(NL).append(label.getKey())
+                            .append(":").append(NL);
+                }
+            }
+
             var generatedCode = generators.apply(inst);
 
             var instCode = StringLines.getLines(generatedCode).stream()
@@ -164,6 +173,12 @@ public class JasminGenerator {
             if (!generatedCode.isEmpty())
                 finalCode.append(instCode);
         }
+
+/*        for (var line : finalCode.toString().split("\n")) {
+            if (line.charAt(line.length() - 1) == ':') {
+                line = line.substring(3);
+            }
+        }*/
 
         if(!method.getReturnType().toString().equals("VOID")){
             if(stackLimit < 1) {
@@ -267,8 +282,7 @@ public class JasminGenerator {
         code.append(generators.apply(binaryOp.getRightOperand()));
 
 
-        if (binaryOp.getOperation().getOpType().toString().equals("LTH")){
-
+        if (binaryOp.getOperation().getOpType().toString().equals("LTH")) {
             var reg1 = this.currentMethod.getVarTable().get(binaryOp.getLeftOperand().toString().substring(binaryOp.getLeftOperand().toString().lastIndexOf(' ') + 1, binaryOp.getLeftOperand().toString().indexOf('.'))).getVirtualReg();
             var reg2 = this.currentMethod.getVarTable().get(binaryOp.getRightOperand().toString().substring(binaryOp.getRightOperand().toString().lastIndexOf(' ') + 1, binaryOp.getRightOperand().toString().indexOf('.'))).getVirtualReg();
             code.append("iload_").append(reg1).append(NL);
@@ -385,7 +399,7 @@ public class JasminGenerator {
             }
 
             int paramCount = callInstruction.getArguments().size();
-            if(paramCount > stackLimit) stackLimit = paramCount + 1;
+            if(paramCount + 1 > stackLimit) stackLimit = paramCount + 1;
 
             for (var param : callInstruction.getArguments()) {
                 if(param.toString().contains("LiteralElement")) {
@@ -524,9 +538,39 @@ public class JasminGenerator {
 
                 var regNum = this.currentMethod.getVarTable().size();
 
-                code.append("istore_").append(regNum + 1).append(NL);
-                code.append("iload_").append(regNum + 1).append(NL);
+                code.append("istore_").append(regNum).append(NL);
+                code.append("iload_").append(regNum).append(NL);
                 code.append("ifne ").append(singleOpCondInstruction.getLabel()).append(NL);
+                break;
+            }
+        }
+
+        return code.toString();
+    }
+
+    private String generateOpCondInstruction(OpCondInstruction opCondInstruction) {
+        System.out.println("OpCondInstruction: " + opCondInstruction);
+        var code = new StringBuilder();
+
+        if(stackLimit < 1) {
+            stackLimit = 1;
+        }
+
+        for (var inst : this.currentMethod.getInstructions()) {
+            if (inst.toString().contains("LTH")) {
+                var ifNumber = opCondInstruction.getLabel().substring(opCondInstruction.getLabel().indexOf('_') + 1);
+                code.append("iflt ").append("cmp_lt_").append(ifNumber).append("_true").append(NL);
+                code.append("iconst_0").append(NL);
+                code.append("goto cpm_lt_").append(ifNumber).append("_end").append(NL);
+                code.append("cmp_lt_").append(ifNumber).append("_true:").append(NL);
+                code.append("iconst_1").append(NL);
+                code.append("cmp_lt_").append(ifNumber).append("_end:").append(NL);
+
+                var regNum = this.currentMethod.getVarTable().size();
+
+                code.append("istore_").append(regNum).append(NL);
+                code.append("iload_").append(regNum).append(NL);
+                code.append("ifne ").append(opCondInstruction.getLabel()).append(NL);
                 break;
             }
         }
@@ -537,12 +581,7 @@ public class JasminGenerator {
     private String generateGoToInstruction(GotoInstruction gotoInstruction) {
         System.out.println("GoToInstruction: " + gotoInstruction);
 
-        return "goto " + gotoInstruction.getLabel() + NL +
-
-                // ter cuidado para o caso do if chegar aos 2 digitos
-                "if_body_" +
-                gotoInstruction.getLabel().charAt(gotoInstruction.getLabel().length() - 1) +
-                ":" + NL;
+        return "goto " + gotoInstruction.getLabel() + NL;
     }
 
     private String getReturnType(String returnType) {
