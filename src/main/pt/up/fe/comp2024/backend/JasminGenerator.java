@@ -437,6 +437,9 @@ public class JasminGenerator {
         else if (callInstruction.getInvocationType().toString().equals("invokestatic")){
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
 
+            int paramCount = callInstruction.getArguments().size();
+            if(paramCount + 1 > stackLimit) stackLimit = paramCount + 1;
+
             for (var param : callInstruction.getArguments()) {
                 if(param.toString().contains("LiteralElement")) {
                     code.append(generators.apply(param));
