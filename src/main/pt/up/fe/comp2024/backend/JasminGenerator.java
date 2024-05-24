@@ -651,7 +651,7 @@ public class JasminGenerator {
                 code.append("ldc 1").append(NL);
                 code.append("cmp_lt_").append(ifNumber).append("_end:").append(NL);
 
-                var regNum = this.currentMethod.getVarTable().size();
+                var regNum = this.currentMethod.getVarTable().size() + 1;
 
                 if (regNum >= this.localsLimit) this.localsLimit = regNum;
 
@@ -716,7 +716,7 @@ public class JasminGenerator {
             code.append("ldc 1").append(NL);
             code.append("cmp_lt_").append(ifNumber).append("_end:").append(NL);
 
-            var regNum = this.currentMethod.getVarTable().size();
+            var regNum = this.currentMethod.getVarTable().size() + 1;
 
             if (regNum >= this.localsLimit) this.localsLimit = regNum;
 
