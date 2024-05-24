@@ -40,9 +40,8 @@ THIS : 'this' ;
 NEW : 'new' ;
 STRING : 'String';
 VOID : 'void';
-STATIC : 'static';MAIN : 'main ';
+STATIC : 'static';
 
-MAIN_LINE : 'static void main';
 
 
 INTEGER : '0'|([1-9][0-9]*) ;
