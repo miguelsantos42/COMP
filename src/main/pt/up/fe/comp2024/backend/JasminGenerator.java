@@ -285,8 +285,12 @@ public class JasminGenerator {
 
         if (lhs instanceof ArrayOperand)
             code.append("iastore").append(NL);
-        else if (lhs.getType().toString().equals("INT32[]"))
-            code.append("astore_").append(reg).append(NL);
+        else if (lhs.getType().toString().equals("INT32[]")) {
+            if (reg < 3)
+                code.append("astore_").append(reg).append(NL);
+            else
+                code.append("astore ").append(reg).append(NL);
+        }
         else if (lhs.getType().toString().equals("INT32"))
             code.append(storeInstruction).append(reg).append(NL);
 
