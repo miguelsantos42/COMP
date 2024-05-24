@@ -321,7 +321,13 @@ public class JasminGenerator {
                 if (operandNameVar.equals(name)) {
                     if(inst.toString().contains("LiteralElement")) {
                         var arrayLength = inst.toString().substring(inst.toString().indexOf("LiteralElement: ") + 16, inst.toString().lastIndexOf("."));
-                        code.append("ldc ").append(arrayLength).append(NL);
+                        var num = Integer.parseInt(arrayLength);
+                        if (num >= -128 && num <= 127)
+                            code.append("bipush ").append(arrayLength).append(NL);
+                        else if (num >= -32768 && num <= 32767)
+                            code.append("sipush ").append(arrayLength).append(NL);
+                        else
+                            code.append("ldc ").append(arrayLength).append(NL);
                     }
                     else if (inst.toString().contains("listOfOperands")) {
                         var reg = this.currentMethod.getVarTable().get(inst.toString().substring(inst.toString().indexOf("listOfOperands (Operand: ") + 25, inst.toString().lastIndexOf("."))).getVirtualReg();
@@ -679,7 +685,16 @@ public class JasminGenerator {
         }
 
         if(singleOpCondInstruction.toString().contains("NOPER")) {
-            code.append("ldc ").append(singleOpCondInstruction.getOperands().get(0).toString(), singleOpCondInstruction.getOperands().get(0).toString().lastIndexOf(' ') + 1, singleOpCondInstruction.getOperands().get(0).toString().indexOf('.')).append(NL);
+            var number = singleOpCondInstruction.getOperands().get(0).toString().substring(singleOpCondInstruction.getOperands().get(0).toString().lastIndexOf(' ') + 1, singleOpCondInstruction.getOperands().get(0).toString().indexOf('.'));
+            var num = Integer.parseInt(number);
+
+            if (num >= -128 && num <= 127)
+                code.append("bipush ").append(number).append(NL);
+            else if (num >= -32768 && num <= 32767)
+                code.append("sipush ").append(number).append(NL);
+            else
+                code.append("ldc ").append(number).append(NL);
+
             code.append("ifne ").append(singleOpCondInstruction.getLabel()).append(NL);
         }
 
