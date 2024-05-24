@@ -54,6 +54,7 @@ public class JasminGenerator {
         generators.put(OpCondInstruction.class, this::generateOpCondInstruction);
         generators.put(GotoInstruction.class, this::generateGoToInstruction);
         generators.put(ArrayOperand.class, this::generateArrayOperand);
+        generators.put(UnaryOpInstruction.class, this::generateUnaryOpInstruction);
     }
 
 
@@ -232,7 +233,7 @@ public class JasminGenerator {
         }
 
         System.out.println("lhs: " + lhs);
-        System.out.println("Register: " + reg);
+            System.out.println("Register: " + reg);
 
         if ((assign.getRhs().getInstType().toString().equals("NOPER") && !assign.getRhs().toString().contains("LiteralElement"))) {
             String var = assign.getRhs().toString().substring(assign.getRhs().toString().lastIndexOf(' ') + 1, assign.getRhs().toString().indexOf('.'));
@@ -288,7 +289,6 @@ public class JasminGenerator {
             code.append("newarray int").append(NL);
         } else {
             int flag = 0;
-            var name = operand.toString().substring(operand.toString().lastIndexOf(' ') + 1, operand.toString().indexOf("."));
             if(operand.getType().toString().equals("INT32")) {
                 for (var inst : currentMethod.getInstructions()) {
                     if (inst.toString().contains("Inst: NOPER (SingleOp) ArrayOperand:")) {
@@ -339,6 +339,7 @@ public class JasminGenerator {
                 case MUL -> "imul";
                 case SUB -> "isub";
                 case DIV -> "idiv";
+                case ANDB -> "iand";
                 default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
             };
             code.append(op).append(NL);
@@ -481,7 +482,12 @@ public class JasminGenerator {
         else if (callInstruction.getInvocationType().toString().equals("invokestatic")) {
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
 
+
+
+
+
             int paramCount = callInstruction.getArguments().size();
+            if(paramCount + 1 > localsLimit) localsLimit = paramCount + 1;
             if (paramCount + 1 > stackLimit) stackLimit = paramCount + 1;
 
             for (var param : callInstruction.getArguments()) {
@@ -522,7 +528,7 @@ public class JasminGenerator {
                 var locals = Integer.parseInt(String.valueOf(visit.charAt(visit.length() - 2)));
                 if (locals >= this.localsLimit)
                     this.localsLimit = locals;
-            }
+                }
 
             code.append(visit);
             var type = switch (returnInst.getOperand().getType().toString()) {
@@ -657,6 +663,24 @@ public class JasminGenerator {
         System.out.println("GoToInstruction: " + gotoInstruction);
 
         return "goto " + gotoInstruction.getLabel() + NL;
+    }
+
+    private String generateUnaryOpInstruction(UnaryOpInstruction unaryOpInstruction){
+        var operandVisit = "";
+        var code = new StringBuilder();
+        if (stackLimit < 1) {
+            stackLimit = 1;
+        }
+        operandVisit = generators.apply(unaryOpInstruction.getOperand());
+        code.append(operandVisit);
+        code.append("iconst_1").append(NL);
+        code.append("ixor").append(NL);
+
+
+
+
+
+        return code.toString();
     }
 
     private String generateArrayOperand(ArrayOperand arrayOperand) {

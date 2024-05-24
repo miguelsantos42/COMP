@@ -115,7 +115,7 @@ public class Cpf4_Jasmin {
 
     @Test
     public void section2_Arithmetic_Simple_and() {
-        CpUtils.runJasmin(getJasminResult("arithmetic/Arithmetic_and.ollir"), "1");
+            CpUtils.runJasmin(getJasminResult("arithmetic/Arithmetic_and.ollir"), "1");
     }
 
     @Test
