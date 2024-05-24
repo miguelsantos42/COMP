@@ -337,6 +337,10 @@ public class JasminGenerator {
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
         var code = new StringBuilder();
 
+        if(stackLimit < 2) {
+            stackLimit = 2;
+        }
+
         if (binaryOp.getOperation().getOpType().toString().equals("LTH")) {
             if (binaryOp.getLeftOperand().toString().contains("LiteralElement"))
                 code.append(generators.apply(binaryOp.getLeftOperand()));
@@ -383,6 +387,10 @@ public class JasminGenerator {
     private String generateGetField(GetFieldInstruction getFieldInstruction) {
         System.out.println("GetField: " + getFieldInstruction);
         var code = new StringBuilder();
+
+        if (stackLimit < 2) {
+            stackLimit = 2;
+        }
 
         var className = ollirResult.getOllirClass().getClassName();
 
@@ -461,6 +469,10 @@ public class JasminGenerator {
 
         // detect wether its necessary a invokespecial or a invokevirtual
 
+        int paramCount = callInstruction.getArguments().size();
+        if (paramCount + 1 > stackLimit) stackLimit = paramCount + 1;
+        if(paramCount + 1 > localsLimit) localsLimit = paramCount + 1;
+
         String callerName = callInstruction.getCaller().toString().substring(callInstruction.getCaller().toString().indexOf(' ') + 1, callInstruction.getCaller().toString().indexOf('.'));
         StringBuilder params;
         if(callInstruction.getArguments().isEmpty()){
@@ -481,8 +493,7 @@ public class JasminGenerator {
                 code.append(instruction).append(reg).append(NL);
             }
 
-            int paramCount = callInstruction.getArguments().size();
-            if (paramCount + 1 > stackLimit) stackLimit = paramCount + 1;
+
 
             for (var param : callInstruction.getArguments()) {
                 if (param.toString().contains("LiteralElement")) {
@@ -518,9 +529,7 @@ public class JasminGenerator {
         else if (callInstruction.getInvocationType().toString().equals("invokestatic")) {
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
 
-            int paramCount = callInstruction.getArguments().size();
-            if(paramCount + 1 > localsLimit) localsLimit = paramCount + 1;
-            if (paramCount + 1 > stackLimit) stackLimit = paramCount + 1;
+
 
             for (var param : callInstruction.getArguments()) {
                 if (param.toString().contains("LiteralElement")) {
