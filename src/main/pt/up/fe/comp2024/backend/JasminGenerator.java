@@ -303,6 +303,11 @@ public class JasminGenerator {
     }
 
     private String generateLiteral(LiteralElement literal) {
+        var num = Integer.parseInt(literal.getLiteral());
+        if (num >= -128 && num <= 127)
+            return "bipush " + num + NL;
+        else if (num >= -32768 && num <= 32767)
+            return "sipush " + num + NL;
         return "ldc " + literal.getLiteral() + NL;
     }
 
