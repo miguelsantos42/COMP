@@ -234,7 +234,7 @@ public class JasminGenerator {
         System.out.println("lhs: " + lhs);
         System.out.println("Register: " + reg);
 
-        if (assign.getRhs().getInstType().toString().equals("NOPER") && !assign.getRhs().toString().contains("LiteralElement")) {
+        if ((assign.getRhs().getInstType().toString().equals("NOPER") && !assign.getRhs().toString().contains("LiteralElement"))) {
             String var = assign.getRhs().toString().substring(assign.getRhs().toString().lastIndexOf(' ') + 1, assign.getRhs().toString().indexOf('.'));
             var loadReg = currentMethod.getVarTable().get(var).getVirtualReg();
 
@@ -252,6 +252,9 @@ public class JasminGenerator {
 
         if (lhs instanceof ArrayOperand)
             code.append("iastore").append(NL);
+        else if((assign.getRhs().toString().contains("array") && assign.getRhs().toString().contains("NEW")) || (assign.getTypeOfAssign().toString().equals("INT32[]") && assign.getRhs().toString().contains("__varargs_array")) || (assign.getRhs().toString().contains("ArrayOperand"))) {
+            code.append("");
+        }
         else
             code.append(storeInstruction).append(reg).append(NL);
 
@@ -277,15 +280,31 @@ public class JasminGenerator {
                 var operandNameVar = inst.toString().substring(inst.toString().indexOf("Operand: ") + 9, inst.toString().indexOf("."));
                 if (operandNameVar.equals(name)) {
                     arrayLength = inst.toString().substring(inst.toString().indexOf("LiteralElement: ") + 16, inst.toString().lastIndexOf("."));
+
                     break;
                 }
             }
             code.append("iconst_").append(arrayLength).append(NL);
             code.append("newarray int").append(NL);
         } else {
-            var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-            var type = getLoadInstruction(operand.getType().toString(), reg);
-            code.append(type).append(reg).append(NL);
+            int flag = 0;
+            var name = operand.toString().substring(operand.toString().lastIndexOf(' ') + 1, operand.toString().indexOf("."));
+            if(operand.getType().toString().equals("INT32")) {
+                for (var inst : currentMethod.getInstructions()) {
+                    if (inst.toString().contains("Inst: NOPER (SingleOp) ArrayOperand:")) {
+                        code.append("iaload").append(NL);
+                        flag = 1;
+                        break;
+                    }
+
+                }
+            }
+            if(flag == 0) {
+                var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+                var type = getLoadInstruction(operand.getType().toString(), reg);
+                code.append(type).append(reg).append(NL);
+            }
+
         }
 
         return code.toString();
@@ -499,11 +518,12 @@ public class JasminGenerator {
             code.append("return").append(NL);
         else {
             var visit = generators.apply(returnInst.getOperand());
-            if (visit.contains("load")) {
+            if (visit.contains("load") && !visit.contains("iaload")) {
                 var locals = Integer.parseInt(String.valueOf(visit.charAt(visit.length() - 2)));
                 if (locals >= this.localsLimit)
                     this.localsLimit = locals;
             }
+
             code.append(visit);
             var type = switch (returnInst.getOperand().getType().toString()) {
                 case "INT32", "BOOLEAN" -> "i";
@@ -643,15 +663,17 @@ public class JasminGenerator {
         System.out.println("ArrayOperand: " + arrayOperand);
         var code = new StringBuilder();
 
-        if (stackLimit < 1) {
-            stackLimit = 1;
+        if (stackLimit < 3) {
+            stackLimit = 3;
         }
 
         var name = arrayOperand.toString().substring(arrayOperand.toString().indexOf(":") + 1, arrayOperand.toString().indexOf("[")).strip();
         var indexArray = arrayOperand.getIndexOperands().get(0);
 
         var reg = this.currentMethod.getVarTable().get(name).getVirtualReg();
-        code.append("aload_").append(reg).append(NL);
+        if(name.contains("tmp") || arrayOperand.getName().toString().contains("__varargs_array")) {
+            code.append("aload_").append(reg).append(NL);
+        }
         code.append(generators.apply(indexArray));
 
         return code.toString();
