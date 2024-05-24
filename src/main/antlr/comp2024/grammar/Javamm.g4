@@ -40,8 +40,7 @@ THIS : 'this' ;
 NEW : 'new' ;
 STRING : 'String';
 VOID : 'void';
-STATIC : 'static';
-MAIN : 'main ';
+STATIC : 'static';MAIN : 'main ';
 
 MAIN_LINE : 'static void main';
 
@@ -101,7 +100,7 @@ methodDecl
     ;
 
 mainMethodDecl
-    : (PUBLIC)? MAIN_LINE LPAREN STRING LBRACKET RBRACKET ID RPAREN blockWithoutReturn #MainMethodDeclaration
+    : (PUBLIC)? 'static void main' LPAREN STRING LBRACKET RBRACKET ID RPAREN blockWithoutReturn #MainMethodDeclaration
     /*
     public static void main(String[] args){
         int a;

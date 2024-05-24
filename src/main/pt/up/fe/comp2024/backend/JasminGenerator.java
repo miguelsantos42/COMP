@@ -311,7 +311,7 @@ public class JasminGenerator {
                 if (operandNameVar.equals(name)) {
                     if(inst.toString().contains("LiteralElement")) {
                         var arrayLength = inst.toString().substring(inst.toString().indexOf("LiteralElement: ") + 16, inst.toString().lastIndexOf("."));
-                        code.append("iconst_").append(arrayLength).append(NL);
+                        code.append("ldc ").append(arrayLength).append(NL);
                     }
                     else if (inst.toString().contains("listOfOperands")) {
                         var reg = this.currentMethod.getVarTable().get(inst.toString().substring(inst.toString().indexOf("listOfOperands (Operand: ") + 25, inst.toString().lastIndexOf("."))).getVirtualReg();
@@ -627,10 +627,10 @@ public class JasminGenerator {
             if (inst.toString().contains("ASSIGN " + operand.toString())) {
                 var ifNumber = singleOpCondInstruction.getLabel().substring(singleOpCondInstruction.getLabel().indexOf('_') + 1);
                 code.append("iflt ").append("cmp_lt_").append(ifNumber).append("_true").append(NL);
-                code.append("iconst_0").append(NL);
+                code.append("ldc 0").append(NL);
                 code.append("goto cmp_lt_").append(ifNumber).append("_end").append(NL);
                 code.append("cmp_lt_").append(ifNumber).append("_true:").append(NL);
-                code.append("iconst_1").append(NL);
+                code.append("ldc 1").append(NL);
                 code.append("cmp_lt_").append(ifNumber).append("_end:").append(NL);
 
                 var regNum = this.currentMethod.getVarTable().size();
@@ -651,7 +651,7 @@ public class JasminGenerator {
         }
 
         if(singleOpCondInstruction.toString().contains("NOPER")) {
-            code.append("iconst_").append(singleOpCondInstruction.getOperands().get(0).toString(), singleOpCondInstruction.getOperands().get(0).toString().lastIndexOf(' ') + 1, singleOpCondInstruction.getOperands().get(0).toString().indexOf('.')).append(NL);
+            code.append("ldc ").append(singleOpCondInstruction.getOperands().get(0).toString(), singleOpCondInstruction.getOperands().get(0).toString().lastIndexOf(' ') + 1, singleOpCondInstruction.getOperands().get(0).toString().indexOf('.')).append(NL);
             code.append("ifne ").append(singleOpCondInstruction.getLabel()).append(NL);
         }
 
@@ -692,10 +692,10 @@ public class JasminGenerator {
 
             var ifNumber = opCondInstruction.getLabel().substring(opCondInstruction.getLabel().indexOf('_') + 1);
             code.append("iflt ").append("cmp_lt_").append(ifNumber).append("_true").append(NL);
-            code.append("iconst_0").append(NL);
+            code.append("ldc 0").append(NL);
             code.append("goto cmp_lt_").append(ifNumber).append("_end").append(NL);
             code.append("cmp_lt_").append(ifNumber).append("_true:").append(NL);
-            code.append("iconst_1").append(NL);
+            code.append("ldc 1").append(NL);
             code.append("cmp_lt_").append(ifNumber).append("_end:").append(NL);
 
             var regNum = this.currentMethod.getVarTable().size();
@@ -737,10 +737,10 @@ public class JasminGenerator {
 
             var ifNumber = opCondInstruction.getLabel().substring(opCondInstruction.getLabel().indexOf('_') + 1);
             code.append("ifge ").append("cmp_gte_").append(ifNumber).append("_true").append(NL);
-            code.append("iconst_0").append(NL);
+            code.append("ldc 0").append(NL);
             code.append("goto cmp_gte_").append(ifNumber).append("_end").append(NL);
             code.append("cmp_gte_").append(ifNumber).append("_true:").append(NL);
-            code.append("iconst_1").append(NL);
+            code.append("ldc 1").append(NL);
             code.append("cmp_gte_").append(ifNumber).append("_end:").append(NL);
 
             var regNum = this.currentMethod.getVarTable().size();
@@ -774,7 +774,7 @@ public class JasminGenerator {
         }
         operandVisit = generators.apply(unaryOpInstruction.getOperand());
         code.append(operandVisit);
-        code.append("iconst_1").append(NL);
+        code.append("ldc 1").append(NL);
         code.append("ixor").append(NL);
 
         return code.toString();
