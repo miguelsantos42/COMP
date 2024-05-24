@@ -564,14 +564,23 @@ public class JasminGenerator {
         if (returnInst.getOperand() == null)
             code.append("return").append(NL);
         else {
-            var visit = generators.apply(returnInst.getOperand());
-            if (visit.contains("load") && !visit.contains("iaload")) {
-                var locals = Integer.parseInt(String.valueOf(visit.charAt(visit.length() - 2)));
-                if (locals >= this.localsLimit)
-                    this.localsLimit = locals;
+            if(returnInst.getReturnType().toString().equals("INT32[]")){
+                var reg = this.currentMethod.getVarTable().get(returnInst.getOperand().toString().substring(returnInst.getOperand().toString().lastIndexOf(' ') + 1, returnInst.getOperand().toString().indexOf('.'))).getVirtualReg();
+                if(reg < 3)
+                    code.append("aload_").append(reg).append(NL);
+                else
+                    code.append("aload ").append(reg).append(NL);
+            }
+            else {
+                var visit = generators.apply(returnInst.getOperand());
+                if (visit.contains("load") && !visit.contains("iaload")) {
+                    var locals = Integer.parseInt(String.valueOf(visit.charAt(visit.length() - 2)));
+                    if (locals >= this.localsLimit)
+                        this.localsLimit = locals;
                 }
 
-            code.append(visit);
+                code.append(visit);
+            }
             var type = switch (returnInst.getOperand().getType().toString()) {
                 case "INT32", "BOOLEAN" -> "i";
                 default -> "a";
