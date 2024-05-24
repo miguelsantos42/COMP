@@ -183,7 +183,7 @@ public class JasminGenerator {
         }
 
         code.append(TAB).append(".limit stack ").append(stackLimit).append(NL);
-        code.append(TAB).append(".limit locals ").append(localsLimit + 1).append(NL);
+        code.append(TAB).append(".limit locals ").append(localsLimit +1).append(NL);
 
         code.append(finalCode);
 
@@ -318,14 +318,22 @@ public class JasminGenerator {
                 code.append(generators.apply(binaryOp.getLeftOperand()));
             else {
                 var reg1 = this.currentMethod.getVarTable().get(binaryOp.getLeftOperand().toString().substring(binaryOp.getLeftOperand().toString().lastIndexOf(' ') + 1, binaryOp.getLeftOperand().toString().indexOf('.'))).getVirtualReg();
-                code.append("iload_").append(reg1).append(NL);
+
+                    if(reg1 < 3)
+                        code.append("iload_").append(reg1).append(NL);
+                    else
+                        code.append("iload ").append(reg1).append(NL);
             }
 
             if (binaryOp.getRightOperand().toString().contains("LiteralElement"))
                 code.append(generators.apply(binaryOp.getRightOperand()));
             else {
                 var reg2 = this.currentMethod.getVarTable().get(binaryOp.getRightOperand().toString().substring(binaryOp.getRightOperand().toString().lastIndexOf(' ') + 1, binaryOp.getRightOperand().toString().indexOf('.'))).getVirtualReg();
-                code.append("iload_").append(reg2).append(NL);
+
+                    if(reg2 < 3)
+                        code.append("iload_").append(reg2).append(NL);
+                    else
+                        code.append("iload ").append(reg2).append(NL);
             }
             code.append("isub").append(NL);
         } else {
@@ -568,6 +576,7 @@ public class JasminGenerator {
                 default -> params.append("L").append(paramS).append(";");
             }
         }
+        if(paramList.size() + 1 > localsLimit) localsLimit = paramList.size();
         return params;
     }
 
@@ -595,8 +604,14 @@ public class JasminGenerator {
 
                 if (regNum >= this.localsLimit) this.localsLimit = regNum;
 
-                code.append("istore_").append(regNum).append(NL);
-                code.append("iload_").append(regNum).append(NL);
+                if(regNum < 3){
+                    code.append("istore_").append(regNum).append(NL);
+                    code.append("iload_").append(regNum).append(NL);
+                }else{
+                    code.append("istore ").append(regNum).append(NL);
+                    code.append("iload ").append(regNum).append(NL);
+                }
+
                 code.append("ifne ").append(singleOpCondInstruction.getLabel()).append(NL);
                 return code.toString();
             }
@@ -623,7 +638,10 @@ public class JasminGenerator {
                 code.append(generators.apply(opCondInstruction.getOperands().get(0)));
             else {
                 var reg1 = this.currentMethod.getVarTable().get(opCondInstruction.getOperands().get(0).toString().substring(opCondInstruction.getOperands().get(0).toString().lastIndexOf(' ') + 1, opCondInstruction.getOperands().get(0).toString().indexOf('.'))).getVirtualReg();
-                code.append("iload_").append(reg1).append(NL);
+                if(reg1 < 3)
+                    code.append("iload_").append(reg1).append(NL);
+                else
+                    code.append("iload ").append(reg1).append(NL);
 
             }
 
@@ -631,7 +649,10 @@ public class JasminGenerator {
                 code.append(generators.apply(opCondInstruction.getOperands().get(1)));
             else {
                 var reg2 = this.currentMethod.getVarTable().get(opCondInstruction.getOperands().get(1).toString().substring(opCondInstruction.getOperands().get(1).toString().lastIndexOf(' ') + 1, opCondInstruction.getOperands().get(1).toString().indexOf('.'))).getVirtualReg();
-                code.append("iload_").append(reg2).append(NL);
+                if(reg2 < 3)
+                    code.append("iload_").append(reg2).append(NL);
+                else
+                    code.append("iload ").append(reg2).append(NL);
             }
 
             code.append("isub").append(NL);
@@ -648,12 +669,58 @@ public class JasminGenerator {
 
             if (regNum >= this.localsLimit) this.localsLimit = regNum;
 
-            code.append("istore_").append(regNum).append(NL);
-            code.append("iload_").append(regNum).append(NL);
+            if(regNum < 3) {
+                code.append("istore_").append(regNum).append(NL);
+                code.append("iload_").append(regNum).append(NL);
+            }else{
+                code.append("istore ").append(regNum).append(NL);
+                code.append("iload ").append(regNum).append(NL);
+            }
             code.append("ifne ").append(opCondInstruction.getLabel()).append(NL);
         }
-        else if (true) { // OTHER OPERATIONS
+        else if (opCondInstruction.toString().contains("GTE")) {
+            if (opCondInstruction.getOperands().get(0).toString().contains("LiteralElement"))
+                code.append(generators.apply(opCondInstruction.getOperands().get(0)));
+            else {
+                var reg1 = this.currentMethod.getVarTable().get(opCondInstruction.getOperands().get(0).toString().substring(opCondInstruction.getOperands().get(0).toString().lastIndexOf(' ') + 1, opCondInstruction.getOperands().get(0).toString().indexOf('.'))).getVirtualReg();
+                if(reg1 < 3)
+                    code.append("iload_").append(reg1).append(NL);
+                else
+                    code.append("iload ").append(reg1).append(NL);
+            }
 
+            if (opCondInstruction.getOperands().get(1).toString().contains("LiteralElement"))
+                code.append(generators.apply(opCondInstruction.getOperands().get(1)));
+            else {
+                var reg2 = this.currentMethod.getVarTable().get(opCondInstruction.getOperands().get(1).toString().substring(opCondInstruction.getOperands().get(1).toString().lastIndexOf(' ') + 1, opCondInstruction.getOperands().get(1).toString().indexOf('.'))).getVirtualReg();
+                if(reg2 < 3)
+                    code.append("iload_").append(reg2).append(NL);
+                else
+                    code.append("iload ").append(reg2).append(NL);
+            }
+
+            code.append("isub").append(NL);
+
+            var ifNumber = opCondInstruction.getLabel().substring(opCondInstruction.getLabel().indexOf('_') + 1);
+            code.append("ifge ").append("cmp_gte_").append(ifNumber).append("_true").append(NL);
+            code.append("iconst_0").append(NL);
+            code.append("goto cmp_gte_").append(ifNumber).append("_end").append(NL);
+            code.append("cmp_gte_").append(ifNumber).append("_true:").append(NL);
+            code.append("iconst_1").append(NL);
+            code.append("cmp_gte_").append(ifNumber).append("_end:").append(NL);
+
+            var regNum = this.currentMethod.getVarTable().size();
+
+            if (regNum >= this.localsLimit) this.localsLimit = regNum;
+
+            if(regNum < 3) {
+                code.append("istore_").append(regNum).append(NL);
+                code.append("iload_").append(regNum).append(NL);
+            }else{
+                code.append("istore ").append(regNum).append(NL);
+                code.append("iload ").append(regNum).append(NL);
+            }
+            code.append("ifne ").append(opCondInstruction.getLabel()).append(NL);
         }
 
         return code.toString();
@@ -696,7 +763,10 @@ public class JasminGenerator {
 
         var reg = this.currentMethod.getVarTable().get(name).getVirtualReg();
         if(name.contains("tmp") || arrayOperand.getName().toString().contains("__varargs_array")) {
-            code.append("aload_").append(reg).append(NL);
+            if(reg < 3)
+                code.append("aload_").append(reg).append(NL);
+            else
+                code.append("aload ").append(reg).append(NL);
         }
         code.append(generators.apply(indexArray));
 
@@ -722,7 +792,7 @@ public class JasminGenerator {
             case "INT32" -> "I";
             case "BOOLEAN" -> "Z";
             case "STRING" -> "Ljava/lang/String;";
-            case "INT[]" -> "[I";
+            case "INT32[]" -> "[I";
             case "BOOLEAN[]" -> "[Z";
             case "STRING[]" -> "[Ljava/lang/String;";
             case "VOID" -> "V";
