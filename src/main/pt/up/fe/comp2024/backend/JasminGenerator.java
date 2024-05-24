@@ -174,11 +174,6 @@ public class JasminGenerator {
                 finalCode.append(instCode);
         }
 
-/*        for (var line : finalCode.toString().split("\n")) {
-            if (line.charAt(line.length() - 1) == ':') {
-                line = line.substring(3);
-            }
-        }*/
 
         if (!method.getReturnType().toString().equals("VOID")) {
             if (stackLimit < 1) {
@@ -457,9 +452,13 @@ public class JasminGenerator {
             }
 
             code.append("invokespecial ").append(className).append(".").append("<init>()V").append(NL);
-        } else if (callInstruction.getInvocationType().toString().equals("NEW")
-                && !callInstruction.getReturnType().toString().equals("INT32[]"))
-            code.append("new ").append(className).append(NL);
+        } else if (callInstruction.getInvocationType().toString().equals("NEW")) {
+            if(!callInstruction.getReturnType().toString().equals("INT32[]")){
+                code.append("new ").append(className).append(NL);
+            }
+
+
+        }
         else if (callInstruction.getInvocationType().toString().equals("invokestatic")) {
             String literal = callInstruction.getMethodName().toString().substring(callInstruction.getMethodName().toString().indexOf('"') + 1, callInstruction.getMethodName().toString().lastIndexOf('"'));
 
